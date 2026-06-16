@@ -563,12 +563,16 @@
        rel="noopener noreferrer"
        style="padding-left:45px;">
        <span class="nav-icon">💧</span>
-       Ventusky
+       Техніка по області
     </a>
-
 </div>
-
-<div class="nav-divider"></div>    <a href="#"><span class="nav-num">06</span><span class="nav-icon">📄</span>Техніка по області</a>
+<a href="https://docs.google.com/spreadsheets/d/1U-RaiGh310Y9wzQBOy9fKwtJg5zvz2S4euk2-gdjoh0/edit?gid=0#gid=0"
+       target="_blank"
+       rel="noopener noreferrer"
+       style="padding-left:45px;">
+       <span class="nav-icon">⛑️</span>
+       Техні по області
+    </a>
     <a href="#"><span class="nav-num">07</span><span class="nav-icon">📄</span>Стройова записка</a>
     <a href="#"><span class="nav-num">08</span><span class="nav-icon">📄</span>Карта планових цілей</a>
     <a href="#"><span class="nav-num">09</span><span class="nav-icon">📄</span>Карта об'єктів життєзабезпечення</a>
