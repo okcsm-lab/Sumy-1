@@ -574,9 +574,23 @@
        Техні по області
     </a>
     <a href="#"><span class="nav-num">07</span><span class="nav-icon">📄</span>Стройова записка</a>
-    <a href="#"><span class="nav-num">08</span><span class="nav-icon">📄</span>Карта планових цілей</a>
-    <a href="#"><span class="nav-num">09</span><span class="nav-icon">📄</span>Карта об'єктів життєзабезпечення</a>
-</nav>
+
+   <a href="https://www.google.com/maps/d/edit?mid=1CmrvY-GGd4IFfd1AoOHC_ccLGsNcjyE&ll=51.317472168470005%2C34.479718761653615&z=8"
+       target="_blank"
+       rel="noopener noreferrer"
+       style="padding-left:45px;">
+       <span class="nav-icon">🗺️</span>
+       Карта планових цілей
+    </a>
+
+    <a href="https://www.google.com/maps/d/edit?mid=1YIGyP-v3Wllimjc-1i5Gq9ntygp1SL0&ll=51.11818004701509%2C34.09933584093874&z=12"
+       target="_blank"
+       rel="noopener noreferrer"
+       style="padding-left:45px;">
+       <span class="nav-icon">🗺️</span>
+       Карта об'єктів життєзабезпеченя
+    </a>
+
 
 <!-- ===== НАВІГАЦІЯ МІЖ СТОРІНКАМИ ===== -->
 <script>
