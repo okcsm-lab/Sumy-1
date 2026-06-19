@@ -305,18 +305,7 @@
     .sidebar-nav .nav-divider {
       height: 1px; background: #334155; margin: 6px 16px;
     }
-  
-.pdf-btn{
-  background:#dc2626;color:#fff;border:none;border-radius:6px;
-  padding:6px 12px;cursor:pointer;font-size:12px;font-weight:600;
-}
-.pdf-btn:hover{background:#b91c1c;}
-
-</style>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+  </style>
 </head>
 <body>
 
@@ -347,9 +336,8 @@
         <p class="header-subtitle">ГУ ДСНС України у Сумській області</p>
       </div>
     </div>
-    <div class="header-meta" style="display:flex;align-items:center;gap:10px;">
+    <div class="header-meta">
       <span class="date-badge" id="dashboardClock">Завантаження...</span>
-      <button class="pdf-btn" onclick="saveOperationalPDF()">📄 PDF</button>
     </div>
   </header>
 
@@ -578,40 +566,6 @@
        Техніка по області
     </a>
 </div>
-
-<a href="#" onclick="toggleNormativnyMenu(); return false;">
-    <span class="nav-num"></span>
-    <span class="nav-icon">📁</span>
-    Нормативні документи
-    <span id="normativnyArrow" style="margin-left:auto;">▼</span>
-</a>
-
-<div id="normativnySubmenu" style="display:none;">
-    <a href="https://zakon.rada.gov.ua/laws/show/z0534-22#Text"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon"></span>
-       116
-    </a>
-    <a href="https://zakon.rada.gov.ua/laws/show/z0534-22#Text"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon"></span>
-       780
-    </a>
-
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 3</a>
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 4</a>
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 5</a>
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 6</a>
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 7</a>
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 8</a>
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 9</a>
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 10</a>
-</div>
-
 <a href="https://docs.google.com/spreadsheets/d/1U-RaiGh310Y9wzQBOy9fKwtJg5zvz2S4euk2-gdjoh0/edit?gid=0#gid=0"
        target="_blank"
        rel="noopener noreferrer"
@@ -707,7 +661,7 @@ function initMap() {
   var layerVisible = {};
 
   function makeMarker(coords, color, layerName, icon, desc) {
-    var size = window.innerWidth < 600 ? 24 : 30;
+    var size = window.innerWidth < 600 ? 16 : 20;
     var divIcon = L.divIcon({
       html: '<div style="font-size:' + size + 'px; line-height:1; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.8)); cursor:pointer;">' + icon + '</div>',
       className: '',
@@ -905,74 +859,6 @@ function toggleAnalyticsMenu() {
         arrow.textContent = '▼';
     }
 }
-
-function toggleNormativnyMenu() {
-    const menu = document.getElementById('normativnySubmenu');
-    const arrow = document.getElementById('normativnyArrow');
-
-    if (menu.style.display === 'none' || menu.style.display === '') {
-        menu.style.display = 'block';
-        arrow.textContent = '▲';
-    } else {
-        menu.style.display = 'none';
-        arrow.textContent = '▼';
-    }
-}
 </script>
-
-
-<script>
-async function saveOperationalPDF() {
-  const element = document.querySelector('.dashboard-wrapper');
-
-  const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#0f172a'
-  });
-
-  const imgData = canvas.toDataURL('image/jpeg', 1.0);
-
-  const { jsPDF } = window.jspdf;
-
-  const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4'
-  });
-
-  const pageWidth = 297;
-  const pageHeight = 210;
-  const margin = 5;
-
-  const usableWidth = pageWidth - margin * 2;
-  const imgWidth = usableWidth;
-  const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-  let heightLeft = imgHeight;
-  let position = margin;
-
-  pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
-
-  heightLeft -= (pageHeight - margin * 2);
-
-  while (heightLeft > 0) {
-      position = heightLeft - imgHeight + margin;
-      pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
-      heightLeft -= (pageHeight - margin * 2);
-  }
-
-  const now = new Date();
-  const fileName =
-      'Оперативна_інформація_' +
-      now.toLocaleDateString('uk-UA').replace(/\./g,'-') +
-      '.pdf';
-
-  pdf.save(fileName);
-}
-</script>
-
-
 </body>
 </html>
