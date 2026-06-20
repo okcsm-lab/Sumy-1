@@ -312,6 +312,96 @@
 }
 .pdf-btn:hover{background:#b91c1c;}
 
+/* ===== ПОПАП-ВІКНА ІНЦИДЕНТІВ (Пожежі / ВНП / Обстріли) ===== */
+.incident-overlay{
+  display:none;
+  position:fixed; inset:0; z-index:1300;
+  background:rgba(0,0,0,.55);
+}
+.incident-overlay.show{ display:block; }
+
+.incident-window{
+  display:none;
+  flex-direction:column;
+  position:fixed;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:min(1300px, 95vw);
+  height:min(620px, 85vh);
+  background:#1e293b;
+  border:1px solid #2563eb;
+  border-radius:12px;
+  box-shadow:0 0 40px rgba(37,99,235,.6);
+  z-index:1301;
+}
+.incident-window.show{ display:flex; }
+
+.incident-header{
+  height:45px; flex-shrink:0;
+  background:#0f172a;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 15px;
+  border-radius:12px 12px 0 0;
+  font-weight:bold; font-size:14px;
+}
+.incident-close{
+  cursor:pointer; color:#ef4444; font-size:18px;
+}
+.incident-content{
+  padding:10px;
+  flex:1;
+  overflow:auto;
+  background:#1e293b;
+  border-radius:0 0 12px 12px;
+}
+.incident-table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+  font-size:12px;
+  background:#1e293b;
+  color:#e2e8f0;
+}
+.incident-table th{
+  background:#0f172a;
+  padding:6px 8px;
+  color:#93c5fd;
+  position:sticky; top:0;
+  text-align:center;
+  font-size:12px; font-weight:bold;
+  line-height:1.3;
+  border:1px solid #2563eb;
+  border-bottom:2px solid #2563eb;
+}
+.incident-table td{
+  padding:6px 8px;
+  border:1px solid #334155;
+  vertical-align:middle;
+  white-space:pre-line;
+  word-wrap:break-word;
+  line-height:1.4;
+  color:#e2e8f0;
+}
+.incident-table td.col-left   { text-align:left; vertical-align:top; }
+.incident-table td.col-center { text-align:center; }
+.incident-table td.col-accent { color:#f87171; text-align:center; }
+.incident-table tr:hover td   { background:#2563eb33; }
+
+.badge-yes{
+  display:inline-block;
+  background:#14532d; color:#86efac;
+  padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;
+}
+.badge-no{
+  display:inline-block;
+  background:#7f1d1d; color:#fca5a5;
+  padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;
+}
+
+.counter-item[data-incident]{ cursor:pointer; transition:.2s; }
+.counter-item[data-incident]:hover{ border-color:#2563eb; box-shadow:0 0 14px rgba(37,99,235,.5); }
+.counter-item.active-incident{ background:#24344d; border-color:#2563eb; box-shadow:0 0 20px #2563eb; }
+
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -354,7 +444,7 @@
   </header>
 
   <section class="top-counters-bar">
-    <div class="counter-item fire-alert">
+    <div class="counter-item fire-alert" data-incident="fires" onclick="openIncidentWindow('fires', this)">
       <span class="counter-label">🔥 Пожежі</span>
       <span class="counter-value" data-cell="C4">—</span>
     </div>
@@ -362,11 +452,11 @@
       <span class="counter-label">🚗 ДТП</span>
       <span class="counter-value" data-cell="C8">—</span>
     </div>
-    <div class="counter-item bomb-alert">
+    <div class="counter-item bomb-alert" data-incident="vnp" onclick="openIncidentWindow('vnp', this)">
       <span class="counter-label">💣 ВНП</span>
       <span class="counter-value" data-cell="C12">—</span>
     </div>
-    <div class="counter-item shelling-alert">
+    <div class="counter-item shelling-alert" data-incident="shelling" onclick="openIncidentWindow('shelling', this)">
       <span class="counter-label">🚀 Обстріли</span>
       <span class="counter-value" data-cell="G6">—</span>
     </div>
@@ -521,6 +611,116 @@
   </main>
 </div>
 </section>
+
+<!-- ===== ПОПАП-ВІКНА ІНЦИДЕНТІВ ===== -->
+<div class="incident-overlay" id="incidentOverlay" onclick="closeIncidentWindow()"></div>
+
+<!-- ПОЖЕЖІ -->
+<div class="incident-window" id="window-fires">
+  <div class="incident-header">
+    🔥 Пожежі
+    <span class="incident-close" onclick="closeIncidentWindow()">✖</span>
+  </div>
+  <div class="incident-content">
+    <table class="incident-table">
+      <colgroup>
+        <col style="width:7%">
+        <col style="width:18%">
+        <col style="width:29%">
+        <col style="width:19%">
+        <col style="width:8%">
+        <col style="width:8%">
+        <col style="width:11%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Дата,<br>Час</th>
+          <th>Адреса,<br>місце пожежі</th>
+          <th>Що знищено, пошкоджено.<br>Причина пожежі, збиток</th>
+          <th>Які сили та засоби використовувалися</th>
+          <th>Відстань до пожежно-рятувального підрозділу</th>
+          <th>Відстань до найближчого ПМПК</th>
+          <th>Хто передав інформацію про пожежу</th>
+        </tr>
+      </thead>
+      <tbody id="table-fires">
+        <tr><td colspan="7">Завантаження...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ВНП -->
+<div class="incident-window" id="window-vnp">
+  <div class="incident-header">
+    💣 ВНП
+    <span class="incident-close" onclick="closeIncidentWindow()">✖</span>
+  </div>
+  <div class="incident-content">
+    <table class="incident-table">
+      <colgroup>
+        <col style="width:7%">
+        <col style="width:14%">
+        <col style="width:10%">
+        <col style="width:10%">
+        <col style="width:14%">
+        <col style="width:6%">
+        <col style="width:8%">
+        <col style="width:31%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Дата</th>
+          <th>Підрозділ, який залучався</th>
+          <th>Територіальна громада</th>
+          <th>Населений пункт</th>
+          <th>Тип поспринасу</th>
+          <th>Кількість</th>
+          <th>Обстежено площі</th>
+          <th>Опис</th>
+        </tr>
+      </thead>
+      <tbody id="table-vnp">
+        <tr><td colspan="8">Завантаження...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ОБСТРІЛИ -->
+<div class="incident-window" id="window-shelling">
+  <div class="incident-header">
+    🚀 Обстріли
+    <span class="incident-close" onclick="closeIncidentWindow()">✖</span>
+  </div>
+  <div class="incident-content">
+    <table class="incident-table">
+      <colgroup>
+        <col style="width:7%">
+        <col style="width:6%">
+        <col style="width:12%">
+        <col style="width:12%">
+        <col style="width:14%">
+        <col style="width:9%">
+        <col style="width:40%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Дата</th>
+          <th>Час</th>
+          <th>ТГ</th>
+          <th>Населений пункт</th>
+          <th>Тип події</th>
+          <th>З наслідками</th>
+          <th>Опис події</th>
+        </tr>
+      </thead>
+      <tbody id="table-shelling">
+        <tr><td colspan="7">Завантаження...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
 <!-- ===== BURGER BUTTON (видно завжди) ===== -->
 <button class="burger-btn" id="burgerBtn" aria-label="Меню" onclick="toggleSidebar()">
@@ -973,6 +1173,129 @@ async function saveOperationalPDF() {
 }
 </script>
 
+
+<script>
+// ===== ПОПАП-ВІКНА ІНЦИДЕНТІВ (Пожежі / ВНП / Обстріли) =====
+// ⚠️ заміни на свій /exec URL після деплою об'єднаного Apps Script (doGet з параметром type)
+const INCIDENT_API = 'https://script.google.com/macros/s/AKfycbxt2v6zDO5CBSyQ-o0FqFZ6KlPxDkoLOzGOO_lsvTGO9Z1GR9OznEoTGYAnPKLQG-k/exec';
+
+const INCIDENT_CONFIG = {
+  fires: {
+    cols: 7,
+    render: function(row) {
+      return (
+        '<td class="col-center">' + (row.time    || '-') + '</td>' +
+        '<td class="col-left">'   + (row.address || '-') + '</td>' +
+        '<td class="col-left">'   + (row.damage  || '-') + '</td>' +
+        '<td class="col-accent">' + (row.forces  || '-') + '</td>' +
+        '<td class="col-center">' + (row.dist1   || '-') + '</td>' +
+        '<td class="col-center">' + (row.dist2   || '-') + '</td>' +
+        '<td class="col-center">' + (row.source  || '-') + '</td>'
+      );
+    }
+  },
+  vnp: {
+    cols: 8,
+    render: function(row) {
+      return (
+        '<td class="col-center">' + (row.date       || '-') + '</td>' +
+        '<td class="col-left">'   + (row.unit        || '-') + '</td>' +
+        '<td class="col-left">'   + (row.community   || '-') + '</td>' +
+        '<td class="col-left">'   + (row.settlement  || '-') + '</td>' +
+        '<td class="col-left">'   + (row.type        || '-') + '</td>' +
+        '<td class="col-center">' + (row.qty         || '-') + '</td>' +
+        '<td class="col-center">' + (row.area        || '-') + '</td>' +
+        '<td class="col-left">'   + (row.desc        || '-') + '</td>'
+      );
+    }
+  },
+  shelling: {
+    cols: 7,
+    render: function(row) {
+      var badge = '-';
+      if (row.consequences === 'Так') badge = '<span class="badge-yes">Так</span>';
+      else if (row.consequences === 'Ні') badge = '<span class="badge-no">Ні</span>';
+      else if (row.consequences) badge = row.consequences;
+
+      return (
+        '<td class="col-center">' + (row.date        || '-') + '</td>' +
+        '<td class="col-center">' + (row.time        || '-') + '</td>' +
+        '<td class="col-left">'   + (row.community   || '-') + '</td>' +
+        '<td class="col-left">'   + (row.settlement  || '-') + '</td>' +
+        '<td class="col-left">'   + (row.type        || '-') + '</td>' +
+        '<td class="col-center">' + badge + '</td>' +
+        '<td class="col-left">'   + (row.desc         || '-') + '</td>'
+      );
+    }
+  }
+};
+
+function openIncidentWindow(type, btn) {
+  document.querySelectorAll('.counter-item[data-incident]').forEach(function(el) {
+    el.classList.remove('active-incident');
+  });
+  if (btn) btn.classList.add('active-incident');
+
+  document.querySelectorAll('.incident-window').forEach(function(w) {
+    w.classList.remove('show');
+  });
+
+  var win = document.getElementById('window-' + type);
+  if (win) win.classList.add('show');
+  document.getElementById('incidentOverlay').classList.add('show');
+
+  loadIncidentData(type);
+}
+
+function closeIncidentWindow() {
+  document.querySelectorAll('.incident-window').forEach(function(w) {
+    w.classList.remove('show');
+  });
+  document.getElementById('incidentOverlay').classList.remove('show');
+  document.querySelectorAll('.counter-item[data-incident]').forEach(function(el) {
+    el.classList.remove('active-incident');
+  });
+}
+
+function loadIncidentData(type) {
+  var cfg   = INCIDENT_CONFIG[type];
+  var tbody = document.getElementById('table-' + type);
+  if (!cfg || !tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">Завантаження...</td></tr>';
+
+  fetch(INCIDENT_API + '?type=' + type)
+    .then(function(res) { return res.text(); })
+    .then(function(text) {
+      var data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">Google Script повернув не JSON</td></tr>';
+        return;
+      }
+
+      if (!Array.isArray(data)) {
+        tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">' +
+          (data && data.error ? data.error : 'Дані не отримано') + '</td></tr>';
+        return;
+      }
+
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">Даних немає</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      data.forEach(function(row) {
+        tbody.innerHTML += '<tr>' + cfg.render(row) + '</tr>';
+      });
+    })
+    .catch(function() {
+      tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">Помилка підключення</td></tr>';
+    });
+}
+</script>
 
 </body>
 </html>
