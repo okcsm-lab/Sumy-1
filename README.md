@@ -886,7 +886,7 @@ function initMap() {
   var MAP_API_URL = 'https://script.google.com/macros/s/AKfycbyRr506heAW2tNKBju72v-SfGBOizPGt3D-Iok5MURT0JqeAzyPQkQWmGeT6ezl6Wy1Hg/exec';
 
   var LAYERS = [
-    { name: 'Надзвичайні події', color: '#ef4444', icon: '⚠️' },
+    { name: 'Надзвичайні події', color: '#ef4444', icon: '🚨' },
     { name: 'ВНП',              color: '#3b82f6', icon: '💣' },
     { name: 'Бойові дії',       color: '#eab308', icon: '🚀' },
     { name: 'Пожежі',           color: '#f97316', icon: '🔥' }
