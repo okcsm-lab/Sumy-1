@@ -312,7 +312,7 @@
 }
 .pdf-btn:hover{background:#b91c1c;}
 
-/* ===== ПОПАП-ВІКНА ІНЦИДЕНТІВ (Пожежі / ВНП / Обстріли) ===== */
+/* ===== ПОПАП-ВІКНА ІНЦИДЕНТІВ ===== */
 .incident-overlay{
   display:none;
   position:fixed; inset:0; z-index:1300;
@@ -492,7 +492,7 @@
       <span class="counter-label">🔥 Пожежі</span>
       <span class="counter-value" data-cell="C4">—</span>
     </div>
-    <div class="counter-item accident-alert">
+    <div class="counter-item accident-alert" data-incident="emergencies" onclick="openIncidentWindow('emergencies', this, 'ДТП')">
       <span class="counter-label">🚗 ДТП</span>
       <span class="counter-value" data-cell="C8">—</span>
     </div>
@@ -504,11 +504,11 @@
       <span class="counter-label">🚀 Обстріли</span>
       <span class="counter-value" data-cell="G6">—</span>
     </div>
-    <div class="counter-item water-alert">
+    <div class="counter-item water-alert" data-incident="emergencies" onclick="openIncidentWindow('emergencies', this, 'НП на воді')">
       <span class="counter-label">🌊 Вода</span>
       <span class="counter-value" data-cell="C16">—</span>
     </div>
-    <div class="counter-item other-alert">
+    <div class="counter-item other-alert" data-incident="emergencies" onclick="openIncidentWindow('emergencies', this, 'Інше')">
       <span class="counter-label">⚠️ Інші</span>
       <span class="counter-value" data-cell="C20">—</span>
     </div>
@@ -785,6 +785,43 @@
   </div>
 </div>
 
+<!-- НАДЗВИЧАЙНІ ПОДІЇ (ДТП, Вода, Інші) -->
+<div class="incident-window" id="window-emergencies">
+  <div class="incident-header">
+    🚨 Надзвичайні події
+    <span class="incident-close" onclick="closeIncidentWindow()">✖</span>
+  </div>
+  <div class="incident-content">
+    <table class="incident-table">
+      <colgroup>
+        <col style="width:8%">
+        <col style="width:6%">
+        <col style="width:12%">
+        <col style="width:12%">
+        <col style="width:14%">
+        <col style="width:28%">
+        <col style="width:10%">
+        <col style="width:10%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Дата</th>
+          <th>Час</th>
+          <th>ТГ</th>
+          <th>Населений пункт</th>
+          <th>Тип події</th>
+          <th>Опис</th>
+          <th>Загиблі</th>
+          <th>Травмовані</th>
+        </tr>
+      </thead>
+      <tbody id="table-emergencies">
+        <tr><td colspan="8">Завантаження...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
 <!-- ===== ПЕРЕГЛЯД ДОКУМЕНТІВ (PDF у самому сайті) ===== -->
 <div class="doc-viewer-overlay" id="docViewerOverlay" onclick="closeDocViewer()"></div>
 <div class="doc-viewer-window" id="docViewerWindow">
@@ -1006,7 +1043,6 @@ function initMap() {
     maxZoom: 19
   }).addTo(map);
 
-  // карта мусить перерахувати свій розмір, коли контейнер стає видимим
   setTimeout(function() { map.invalidateSize(); }, 100);
 
   var layerGroups  = {};
@@ -1281,10 +1317,11 @@ async function saveOperationalPDF() {
 
 
 <script>
-// ===== ПОПАП-ВІКНА ІНЦИДЕНТІВ (Пожежі / ВНП / Обстріли) =====
-const INCIDENT_API = 'https://script.google.com/macros/s/AKfycbxY_-XBEoNJpRiWYSHjvQQfqlD1KZpuff2TJHeKCJm63ee9gJuRY3jC8RQqurLeMJv3pw/exec';
+// ===== ПОПАП-ВІКНА ІНЦИДЕНТІВ =====
+const INCIDENT_API = 'https://script.google.com/macros/s/AKfycbzt9OafZq1cr6CiHsf7yFsybR2X31PZlaEuS6qnSojg0to9JRDEFqHC0BrVqgsVvGkjHg/exec';
 
 const INCIDENT_CONFIG = {
+  // ===== ПОЖЕЖІ =====
   fires: {
     cols: 7,
     render: function(row) {
@@ -1299,6 +1336,7 @@ const INCIDENT_CONFIG = {
       );
     }
   },
+  // ===== ВНП =====
   vnp: {
     cols: 8,
     render: function(row) {
@@ -1314,6 +1352,7 @@ const INCIDENT_CONFIG = {
       );
     }
   },
+  // ===== БОЙОВІ ДІЇ (ОБСТРІЛИ) =====
   shelling: {
     cols: 7,
     render: function(row) {
@@ -1332,10 +1371,33 @@ const INCIDENT_CONFIG = {
         '<td class="col-left">'   + (row.desc         || '-') + '</td>'
       );
     }
+  },
+  // ===== НАДЗВИЧАЙНІ ПОДІЇ (ДТП, Вода, Інші) =====
+  emergencies: {
+    cols: 8,
+    render: function(row) {
+      return (
+        '<td class="col-center">' + (row.date         || '-') + '</td>' +
+        '<td class="col-center">' + (row.time         || '-') + '</td>' +
+        '<td class="col-left">'   + (row.community    || '-') + '</td>' +
+        '<td class="col-left">'   + (row.settlement   || '-') + '</td>' +
+        '<td class="col-left">'   + (row.type         || '-') + '</td>' +
+        '<td class="col-left">'   + (row.description  || '-') + '</td>' +
+        '<td class="col-center">' + (row.victims      || '-') + '</td>' +
+        '<td class="col-center">' + (row.injured      || '-') + '</td>'
+      );
+    },
+    // Фільтр за типом події
+    filterByType: function(row, filterType) {
+      if (!filterType) return true;
+      var eventType = (row.type || '').toString().trim();
+      var filter = filterType.toString().trim();
+      return eventType === filter;
+    }
   }
 };
 
-function openIncidentWindow(type, btn) {
+function openIncidentWindow(type, btn, filterType) {
   document.querySelectorAll('.counter-item[data-incident]').forEach(function(el) {
     el.classList.remove('active-incident');
   });
@@ -1349,7 +1411,7 @@ function openIncidentWindow(type, btn) {
   if (win) win.classList.add('show');
   document.getElementById('incidentOverlay').classList.add('show');
 
-  loadIncidentData(type);
+  loadIncidentData(type, filterType);
 }
 
 function closeIncidentWindow() {
@@ -1362,42 +1424,82 @@ function closeIncidentWindow() {
   });
 }
 
-function loadIncidentData(type) {
+function loadIncidentData(type, filterType) {
   var cfg   = INCIDENT_CONFIG[type];
   var tbody = document.getElementById('table-' + type);
   if (!cfg || !tbody) return;
 
   tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">Завантаження...</td></tr>';
 
-  fetch(INCIDENT_API + '?type=' + type)
-    .then(function(res) { return res.text(); })
+  var url = INCIDENT_API + '?type=' + type;
+  console.log('📡 Запит до:', url);
+  console.log('🔍 Фільтр:', filterType);
+
+  fetch(url)
+    .then(function(res) { 
+      console.log('📥 Статус відповіді:', res.status);
+      return res.text(); 
+    })
     .then(function(text) {
+      console.log('📄 Відповідь (текст):', text);
+      
       var data;
       try {
         data = JSON.parse(text);
+        console.log('✅ Розпарсено:', data);
       } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">Google Script повернув не JSON</td></tr>';
+        console.error('❌ Помилка парсингу:', e);
+        tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">Помилка: не JSON</td></tr>';
         return;
       }
 
       if (!Array.isArray(data)) {
+        console.error('❌ Дані не масив:', data);
         tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">' +
           (data && data.error ? data.error : 'Дані не отримано') + '</td></tr>';
         return;
       }
 
+      console.log('📊 Всього рядків:', data.length);
+      if (data.length > 0) {
+        console.log('📋 Перший рядок:', data[0]);
+        console.log('📋 Всі типи подій:', data.map(function(row) { return row.type; }));
+      }
+
       if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">Даних немає</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">⚠️ Даних немає</td></tr>';
+        return;
+      }
+
+      // Фільтрація даних
+      var filteredData = data;
+      
+      if (cfg.filterByType && filterType) {
+        console.log('🔍 Фільтруємо за типом:', filterType);
+        filteredData = data.filter(function(row) {
+          var rowType = (row.type || '').toString().trim();
+          var filter = filterType.toString().trim();
+          var match = rowType === filter;
+          console.log('   Рядок:', rowType, '->', match ? '✅' : '❌');
+          return match;
+        });
+      }
+
+      console.log('📊 Після фільтрації:', filteredData.length);
+
+      if (filteredData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">❌ Заповнених даних немає<br><small>(перевірте значення в колонці "Тип події")</small></td></tr>';
         return;
       }
 
       tbody.innerHTML = '';
-      data.forEach(function(row) {
+      filteredData.forEach(function(row) {
         tbody.innerHTML += '<tr>' + cfg.render(row) + '</tr>';
       });
     })
-    .catch(function() {
-      tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">Помилка підключення</td></tr>';
+    .catch(function(error) {
+      console.error('❌ Помилка запиту:', error);
+      tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">❌ Помилка підключення</td></tr>';
     });
 }
 </script>
