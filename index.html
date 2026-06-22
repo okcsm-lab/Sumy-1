@@ -1023,10 +1023,11 @@
   }
 </script>
 
-<!-- ===== КАРТА (ініціалізується лише при відкритті розділу) ===== -->
+<!-- ===== КАРТА (оновлена версія - замість старої) ===== -->
 <script>
 function initMap() {
-  var MAP_API_URL = 'https://script.google.com/macros/s/AKfycbxY_-XBEoNJpRiWYSHjvQQfqlD1KZpuff2TJHeKCJm63ee9gJuRY3jC8RQqurLeMJv3pw/exec';
+  // ВСТАВТЕ СЮДИ ВАШ URL APPS SCRIPT
+  var MAP_API_URL = 'https://script.google.com/macros/s/AKfycbwTYEsN6LWDcgcyQ5ccmOF8hfYK1ob98P_vter4L_k5w5HiHDoIieaCytF55R2yBDpxTA/exec';
 
   var LAYERS = [
     { name: 'Надзвичайні події', color: '#ef4444', icon: '🚨' },
@@ -1093,24 +1094,34 @@ function initMap() {
     }
 
     window[id] = function(rows) {
+      console.log('📊 Отримано дані для "' + layer.name + '":', rows);
+      
       if (Array.isArray(rows)) {
         rows.forEach(function(row) {
-          var coords = parseCoords(row.coords);
+          var coordsRaw = row.coords || row[0] || '';
+          var descRaw   = row.desc || row[1] || '';
+          
+          var coords = parseCoords(coordsRaw);
           if (!coords) return;
           count++;
-          makeMarker(coords, layer.color, layer.name, layer.icon, row.desc).addTo(group);
+          makeMarker(coords, layer.color, layer.name, layer.icon, descRaw || '—').addTo(group);
         });
       }
       finish();
     };
 
-    script.src = MAP_API_URL + '?sheet=' + encodeURIComponent(layer.name) + '&callback=' + id;
-    script.onerror = function() { finish(); };
+    // Використовуємо параметр map=true для карти
+    script.src = MAP_API_URL + '?map=true&type=' + encodeURIComponent(layer.name) + '&callback=' + id;
+    script.onerror = function() { 
+      console.error('❌ Помилка завантаження:', layer.name);
+      finish(); 
+    };
     document.head.appendChild(script);
   }
 
   function buildLegend(results) {
     var container = document.getElementById('map-legend-items');
+    container.innerHTML = '';
     results.forEach(function(r) {
       var div = document.createElement('div');
       div.className = 'legend-item';
