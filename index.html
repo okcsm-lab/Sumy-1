@@ -402,6 +402,50 @@
 .counter-item[data-incident]:hover{ border-color:#2563eb; box-shadow:0 0 14px rgba(37,99,235,.5); }
 .counter-item.active-incident{ background:#24344d; border-color:#2563eb; box-shadow:0 0 20px #2563eb; }
 
+/* ===== ПЕРЕГЛЯД ДОКУМЕНТІВ (PDF у самому сайті) ===== */
+.doc-viewer-overlay{
+  display:none;
+  position:fixed; inset:0; z-index:1400;
+  background:rgba(0,0,0,.6);
+}
+.doc-viewer-overlay.show{ display:block; }
+
+.doc-viewer-window{
+  display:none;
+  flex-direction:column;
+  position:fixed;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:min(1000px, 95vw);
+  height:min(85vh, 900px);
+  background:#1e293b;
+  border:1px solid #2563eb;
+  border-radius:12px;
+  box-shadow:0 0 40px rgba(37,99,235,.6);
+  z-index:1401;
+}
+.doc-viewer-window.show{ display:flex; }
+
+.doc-viewer-header{
+  height:45px; flex-shrink:0;
+  background:#0f172a;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 15px;
+  border-radius:12px 12px 0 0;
+  font-weight:bold; font-size:14px;
+  color:#f1f5f9;
+}
+.doc-viewer-close{ cursor:pointer; color:#ef4444; font-size:18px; }
+.doc-viewer-body{
+  flex:1;
+  overflow:hidden;
+  border-radius:0 0 12px 12px;
+  background:#0f172a;
+}
+.doc-viewer-body iframe{
+  width:100%; height:100%; border:none; background:#fff;
+}
+
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -741,6 +785,18 @@
   </div>
 </div>
 
+<!-- ===== ПЕРЕГЛЯД ДОКУМЕНТІВ (PDF у самому сайті) ===== -->
+<div class="doc-viewer-overlay" id="docViewerOverlay" onclick="closeDocViewer()"></div>
+<div class="doc-viewer-window" id="docViewerWindow">
+  <div class="doc-viewer-header">
+    <span id="docViewerTitle">📄 Документ</span>
+    <span class="doc-viewer-close" onclick="closeDocViewer()">✖</span>
+  </div>
+  <div class="doc-viewer-body">
+    <iframe id="docViewerFrame" src="" title="Перегляд документа"></iframe>
+  </div>
+</div>
+
 <!-- ===== BURGER BUTTON (видно завжди) ===== -->
 <button class="burger-btn" id="burgerBtn" aria-label="Меню" onclick="toggleSidebar()">
   <span></span><span></span><span></span>
@@ -854,7 +910,8 @@
        style="padding-left:45px;">
        <span class="nav-icon"></span>
        432
-    <a href="#" onclick="openDocViewer('1661.pdf', '📄 1661 — Про затвердження Правил безпеки праці в органах та підрозділах ДСНС'); return false;"
+    </a>
+<a href="#" onclick="openDocViewer('1661.pdf', '📄 1661 — Про затвердження Правил безпеки праці в органах та підрозділах ДСНС'); return false;"
        style="padding-left:45px;">
        <span class="nav-icon"></span>
        1661
@@ -1225,7 +1282,6 @@ async function saveOperationalPDF() {
 
 <script>
 // ===== ПОПАП-ВІКНА ІНЦИДЕНТІВ (Пожежі / ВНП / Обстріли) =====
-// ⚠️ заміни на свій /exec URL після деплою об'єднаного Apps Script (doGet з параметром type)
 const INCIDENT_API = 'https://script.google.com/macros/s/AKfycbxY_-XBEoNJpRiWYSHjvQQfqlD1KZpuff2TJHeKCJm63ee9gJuRY3jC8RQqurLeMJv3pw/exec';
 
 const INCIDENT_CONFIG = {
@@ -1343,6 +1399,23 @@ function loadIncidentData(type) {
     .catch(function() {
       tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">Помилка підключення</td></tr>';
     });
+}
+</script>
+
+<!-- ===== ПЕРЕГЛЯД ДОКУМЕНТІВ (PDF) ===== -->
+<script>
+function openDocViewer(url, title) {
+  var frame = document.getElementById('docViewerFrame');
+  frame.src = encodeURI(url);
+  document.getElementById('docViewerTitle').textContent = title || '📄 Документ';
+  document.getElementById('docViewerWindow').classList.add('show');
+  document.getElementById('docViewerOverlay').classList.add('show');
+}
+
+function closeDocViewer() {
+  document.getElementById('docViewerWindow').classList.remove('show');
+  document.getElementById('docViewerOverlay').classList.remove('show');
+  document.getElementById('docViewerFrame').src = '';
 }
 </script>
 
