@@ -503,7 +503,26 @@
           </div>
         </div>
       </div>
+
+      <div class="info-block">
+        <button class="accordion-toggle" onclick="toggleAccordion(this)">
+          👨‍🚒 Втрати ДСНС внаслідок бойових дій <span class="arrow">▼</span>
+        </button>
+        <div class="accordion-body padding-box">
+          <div class="points-list">
+            <p><strong>Загинуло:</strong><br>
+              Всього – 121: Донецька – 19, Харківська – 13, Дніпропетровська – 9, Херсонська – 9, САЗ – 8, м. Київ – 8, Луганська – 6, Запорізька – 6, Київська – 5, Полтавська – 5, МКГР ШР с. Ватутіне – 4, Сумська – 4, Житомирська – 3, Одеська – 3, Чернігівська – 2, Миколаївська – 2, Хмельницька – 2, ДВГРЗ м. Кривий Ріг – 2, Кіровоградська – 1, Львівська – 1, Тернопільська – 1, Чернігівський ГМЦ – 1, Херсонський ГМЦ – 1, ГАКЦПР – 1, МРЦ ШР "Суми" – 1, з них піротехніків – 26. </p>
+            <hr class="dashed-line">
+            <p><strong>Травмовано:</strong><br>
+              Всього – 630, з них піротехніків – 119.</p>
+            <hr class="dashed-line">
+            <p><strong>Полон та зникли безвісти:</strong><br>
+              Всього – 4, з них: у полоні – 3, зникли безвісти – 1.</p>
+          </div>
+        </div>
+      </div>
     </div>
+
 
     <!-- КОЛОНКА 2 -->
     <div class="grid-column">
@@ -775,7 +794,7 @@
        rel="noopener noreferrer"
        style="padding-left:45px;">
        <span class="nav-icon">💧</span>
-       Техніка по області
+       погода
     </a>
 </div>
 
@@ -794,22 +813,55 @@
        <span class="nav-icon"></span>
        116
     </a>
-    <a href="https://zakon.rada.gov.ua/laws/show/z0534-22#Text"
+    <a href="https://zakon.rada.gov.ua/laws/show/z1839-23#Text"
        target="_blank"
        rel="noopener noreferrer"
        style="padding-left:45px;">
        <span class="nav-icon"></span>
        780
     </a>
-
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 3</a>
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 4</a>
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 5</a>
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 6</a>
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 7</a>
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 8</a>
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 9</a>
-    <a href="#" style="padding-left:45px;"><span class="nav-icon">📄</span> Документ 10</a>
+<a href="https://zakon.rada.gov.ua/laws/show/z0802-18#Text"
+       target="_blank"
+       rel="noopener noreferrer"
+       style="padding-left:45px;">
+       <span class="nav-icon"></span>
+       340-гасіння пожеж
+    </a>
+<a href="https://ips.ligazakon.net/document/re32253?an=1"
+       target="_blank"
+       rel="noopener noreferrer"
+       style="padding-left:45px;">
+       <span class="nav-icon"></span>
+       340-НС
+    </a>
+<a href="https://zakon.rada.gov.ua/laws/show/z0835-17#Text"
+       target="_blank"
+       rel="noopener noreferrer"
+       style="padding-left:45px;">
+       <span class="nav-icon"></span>
+       511
+    </a>
+<a href="https://zakon.rada.gov.ua/laws/show/z0780-15#Text"
+       target="_blank"
+       rel="noopener noreferrer"
+       style="padding-left:45px;">
+       <span class="nav-icon"></span>
+       696
+    </a>
+<a href="https://zakon.rada.gov.ua/rada/show/v0432388-13#Text"
+       target="_blank"
+       rel="noopener noreferrer"
+       style="padding-left:45px;">
+       <span class="nav-icon"></span>
+       432
+    </a>
+<a href="file:///C:/Users/arm_s/OneDrive/%D0%A0%D0%B0%D0%B1%D0%BE%D1%87%D0%B8%D0%B9%20%D1%81%D1%82%D0%BE%D0%BB/1661%20%D0%9F%D1%80%D0%BE%20%D0%B7%D0%B0%D1%82%D0%B2%D0%B5%D1%80%D0%B4%D0%B6%D0%B5%D0%BD%D0%BD%D1%8F%20%D0%9F%D1%80%D0%B0%D0%B2%D0%B8%D0%BB%20%D0%B1%D0%B5%D0%B7%D0%BF%D0%B5%D0%BA%D0%B8%20%D0%BF%D1%80%D0%B0%D1%86%D1%96%20%D0%B2%20%D0%BE%D1%80%D0%B3%D0%B0%D0%BD%D0%B0%D1%85%20%D1%82%D0%B0%20%D0%BF%D1%96%D0%B4%D1%80%D0%BE%D0%B7%D0%B4%D1%96%D0%BB%D0%B0%D1%85%20%D0%94%D0%A1%D0%9D%D0%A1.pdf"
+       target="_blank"
+       rel="noopener noreferrer"
+       style="padding-left:45px;">
+       <span class="nav-icon"></span>
+       1661
+    </a>
 </div>
 
 <a href="https://docs.google.com/spreadsheets/d/1U-RaiGh310Y9wzQBOy9fKwtJg5zvz2S4euk2-gdjoh0/edit?gid=0#gid=0"
@@ -819,7 +871,7 @@
        <span class="nav-icon">⛑️</span>
        Техні по області
     </a>
-    <a href="#"><span class="nav-num">07</span><span class="nav-icon">📄</span>Стройова записка</a>
+    <a href="#"><span class="nav-num"></span><span class="nav-icon">📄</span>Стройова записка</a>
 
    <a href="https://www.google.com/maps/d/edit?mid=1CmrvY-GGd4IFfd1AoOHC_ccLGsNcjyE&ll=51.317472168470005%2C34.479718761653615&z=8"
        target="_blank"
@@ -883,7 +935,7 @@
 <!-- ===== КАРТА (ініціалізується лише при відкритті розділу) ===== -->
 <script>
 function initMap() {
-  var MAP_API_URL = 'https://script.google.com/macros/s/AKfycbyRr506heAW2tNKBju72v-SfGBOizPGt3D-Iok5MURT0JqeAzyPQkQWmGeT6ezl6Wy1Hg/exec';
+  var MAP_API_URL = 'https://script.google.com/macros/s/AKfycbxY_-XBEoNJpRiWYSHjvQQfqlD1KZpuff2TJHeKCJm63ee9gJuRY3jC8RQqurLeMJv3pw/exec';
 
   var LAYERS = [
     { name: 'Надзвичайні події', color: '#ef4444', icon: '🚨' },
@@ -1177,7 +1229,7 @@ async function saveOperationalPDF() {
 <script>
 // ===== ПОПАП-ВІКНА ІНЦИДЕНТІВ (Пожежі / ВНП / Обстріли) =====
 // ⚠️ заміни на свій /exec URL після деплою об'єднаного Apps Script (doGet з параметром type)
-const INCIDENT_API = 'https://script.google.com/macros/s/AKfycbxt2v6zDO5CBSyQ-o0FqFZ6KlPxDkoLOzGOO_lsvTGO9Z1GR9OznEoTGYAnPKLQG-k/exec';
+const INCIDENT_API = 'https://script.google.com/macros/s/AKfycbxY_-XBEoNJpRiWYSHjvQQfqlD1KZpuff2TJHeKCJm63ee9gJuRY3jC8RQqurLeMJv3pw/exec';
 
 const INCIDENT_CONFIG = {
   fires: {
