@@ -960,7 +960,7 @@
        rel="noopener noreferrer"
        style="padding-left:45px;">
        <span class="nav-icon">⛑️</span>
-       Техні по області
+       Техніка по області
     </a>
     <a href="#"><span class="nav-num"></span><span class="nav-icon">📄</span>Стройова записка</a>
 
