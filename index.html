@@ -446,6 +446,42 @@
   width:100%; height:100%; border:none; background:#fff;
 }
 
+/* ===== ПОВНОЕКРАННА КАРТА "ЗАЛУЧЕННЯ ПІДРОЗДІЛІВ" ===== */
+.deployment-overlay{
+  display:none;
+  position:fixed; inset:0; z-index:1500;
+  background:rgba(0,0,0,.6);
+}
+.deployment-overlay.show{ display:block; }
+
+.deployment-window{
+  display:none;
+  flex-direction:column;
+  position:fixed;
+  inset:0;
+  width:100%; height:100%;
+  background:#1e293b;
+  z-index:1501;
+}
+.deployment-window.show{ display:flex; }
+
+.deployment-header{
+  height:52px; flex-shrink:0;
+  background:#0f172a;
+  border-bottom:2px solid #2563eb;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 16px;
+  font-weight:bold; font-size:14px;
+  color:#f1f5f9;
+}
+.deployment-close{ cursor:pointer; color:#ef4444; font-size:20px; }
+.deployment-body{
+  flex:1;
+  position:relative;
+  overflow:hidden;
+}
+#deployment-map{ width:100%; height:100%; }
+
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -832,6 +868,22 @@
   </div>
 </div>
 
+<!-- ===== ПОВНОЕКРАННА КАРТА "ЗАЛУЧЕННЯ ПІДРОЗДІЛІВ" ===== -->
+<div class="deployment-overlay" id="deploymentOverlay" onclick="closeDeploymentMap()"></div>
+<div class="deployment-window" id="deploymentWindow">
+  <div class="deployment-header">
+    <span>🚒 Залучення підрозділів</span>
+    <span class="deployment-close" onclick="closeDeploymentMap()">✖</span>
+  </div>
+  <div class="deployment-body">
+    <div id="deployment-map"></div>
+    <div class="map-statusbar">
+      <div class="dot-status loading" id="deployment-status-dot"></div>
+      <span id="deployment-status-text">Завантаження…</span>
+    </div>
+  </div>
+</div>
+
 <!-- ===== BURGER BUTTON (видно завжди) ===== -->
 <button class="burger-btn" id="burgerBtn" aria-label="Меню" onclick="toggleSidebar()">
   <span></span><span></span><span></span>
@@ -846,7 +898,8 @@
     <h3>📋 Розділи</h3>
   </div>
   <div class="sidebar-nav">
-    <a href="#" onclick="showSection('operational'); return false;"><span class="nav-num"></span>🚒 Оперативна інформація</a> 
+    <a href="#" onclick="showSection('operational'); return false;"><span class="nav-num"></span>🚒 Оперативна інформація</a>
+    <a href="#" onclick="openDeploymentMap(); return false;"><span class="nav-num"></span>🚒 Залучення підрозділів</a>
 <a href="#" onclick="toggleAnalyticsMenu(); return false;">
     <span class="nav-num"></span>
     <span class="nav-icon">📊</span>
@@ -1533,6 +1586,188 @@ function closeDocViewer() {
   document.getElementById('docViewerWindow').classList.remove('show');
   document.getElementById('docViewerOverlay').classList.remove('show');
   document.getElementById('docViewerFrame').src = '';
+}
+</script>
+
+<!-- ===== ПОВНОЕКРАННА КАРТА "ЗАЛУЧЕННЯ ПІДРОЗДІЛІВ" ===== -->
+<script>
+var deploymentMapInitialized = false;
+var deploymentMapInstance   = null;
+var deploymentMarkersLayer  = null;
+var deploymentSyncTimer     = null;
+
+// URL Apps Script Web App (Deploy -> New deployment -> Web app)
+// Взяти зі скрипта, прив'язаного до таблиці 1vPf50hPURWtJSE6t56TXfvb3z2iQc8kHH-1sj84ENQg
+var DEPLOYMENT_API_URL = 'https://script.google.com/macros/s/AKfycbx3Ki--9U_vBmaRX40AeOdVr7bTzTb1KwWiDLdx2D5yR_z0g2NkYsKlROLA-QKjJBNHjQ/exec';
+var DEPLOYMENT_SYNC_INTERVAL = 5 * 60 * 1000; // 5 хвилин
+
+function openDeploymentMap() {
+  document.getElementById('deploymentWindow').classList.add('show');
+  document.getElementById('deploymentOverlay').classList.add('show');
+  toggleSidebar(true);
+
+  if (!deploymentMapInitialized) {
+    deploymentMapInitialized = true;
+    initDeploymentMap();
+  } else if (deploymentMapInstance) {
+    setTimeout(function() { deploymentMapInstance.invalidateSize(); }, 100);
+    loadDeploymentData();
+  }
+}
+
+function closeDeploymentMap() {
+  document.getElementById('deploymentWindow').classList.remove('show');
+  document.getElementById('deploymentOverlay').classList.remove('show');
+}
+
+function initDeploymentMap() {
+  deploymentMapInstance = L.map('deployment-map', {
+    zoomControl: true,
+    scrollWheelZoom: true,
+    tap: true
+  }).setView([51.5, 34.0], 8);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(deploymentMapInstance);
+
+  deploymentMarkersLayer = L.layerGroup().addTo(deploymentMapInstance);
+
+  setTimeout(function() { deploymentMapInstance.invalidateSize(); }, 150);
+
+  loadDeploymentData();
+  if (!deploymentSyncTimer) {
+    deploymentSyncTimer = setInterval(loadDeploymentData, DEPLOYMENT_SYNC_INTERVAL);
+  }
+}
+
+// Парсинг координат з колонки A (формати: "51.234, 34.567" або "51.234;34.567")
+function parseDeploymentCoords(raw) {
+  if (!raw) return null;
+  var s = String(raw).trim().replace(/\s*[;,]\s*/g, ',');
+  var p = s.split(',').map(Number).filter(function(n) { return !isNaN(n) && n !== 0; });
+  if (p.length < 2) return null;
+  var lat = p[0], lng = p[1];
+  if (lat < 43 || lat > 54 || lng < 21 || lng > 42) return null;
+  return [lat, lng];
+}
+
+function makeDeploymentMarker(coords, popupHtml) {
+  var size = window.innerWidth < 600 ? 20 : 26;
+  var divIcon = L.divIcon({
+    html: '<div style="font-size:' + size + 'px; line-height:1; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.8)); cursor:pointer;">🚒</div>',
+    className: '',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -(size / 2 + 4)]
+  });
+  return L.marker(coords, { icon: divIcon }).bindPopup(
+    '<div class="popup-layer" style="color:#38bdf8">🚒 Подія</div>' +
+    '<div class="popup-desc">' + popupHtml + '</div>',
+    { maxWidth: 260 }
+  );
+}
+
+function setDeploymentStatus(state, text) {
+  var dot  = document.getElementById('deployment-status-dot');
+  var span = document.getElementById('deployment-status-text');
+  if (!dot || !span) return;
+  dot.classList.remove('loading', 'ok');
+  if (state === 'loading') dot.classList.add('loading');
+  if (state === 'ok') dot.classList.add('ok');
+  if (state === 'error') span.style.color = '#ef4444'; else span.style.color = '';
+  span.textContent = text;
+}
+
+// Завантаження точок через Google Apps Script Web App
+function loadDeploymentData() {
+  if (!DEPLOYMENT_API_URL || DEPLOYMENT_API_URL.indexOf('ВСТАВТЕ') === 0) {
+    setDeploymentStatus('error', '❌ Не вказано DEPLOYMENT_API_URL');
+    return;
+  }
+
+  setDeploymentStatus('loading', 'Завантаження…');
+
+  var url = DEPLOYMENT_API_URL + '?_=' + Date.now();
+
+  fetch(url)
+    .then(function(res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.text();
+    })
+    .then(function(text) {
+      var data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error('❌ Відповідь не є JSON:', text);
+        setDeploymentStatus('error', '❌ Відповідь скрипта не JSON (перевірте деплой)');
+        return;
+      }
+
+      if (data.error) {
+        console.error('❌ Помилка скрипта:', data.error, data.debug);
+        setDeploymentStatus('error', '❌ ' + data.error);
+        return;
+      }
+
+      var labels = data.labels || {};
+      var rows   = data.rows   || [];
+      console.log('📊 Залучення підрозділів — отримано рядків:', rows.length, 'debug:', data.debug);
+
+      if (deploymentMarkersLayer) deploymentMarkersLayer.clearLayers();
+
+      var pts = [];
+      var skippedCoords = 0;
+
+      rows.forEach(function(row) {
+        var coords = parseDeploymentCoords(row.coords);
+        if (!coords) { skippedCoords++; return; }
+
+        var infoParts = [];
+
+        // C — як є (наприклад "3 ДПРЧ")
+        if (row.c !== undefined && row.c !== null && String(row.c).trim() !== '') {
+          infoParts.push(String(row.c).trim());
+        }
+        // D — кількість одиниць техніки -> "1 од.тех."
+        if (row.d !== undefined && row.d !== null && String(row.d).trim() !== '') {
+          infoParts.push(String(row.d).trim() + ' од.тех.');
+        }
+        // E — кількість особового складу -> "4 чол. о/с"
+        if (row.e !== undefined && row.e !== null && String(row.e).trim() !== '') {
+          infoParts.push(String(row.e).trim() + ' чол. о/с');
+        }
+        // F — керівник гасіння пожежі -> "КГП - Рута Б.І."
+        if (row.f !== undefined && row.f !== null && String(row.f).trim() !== '') {
+          infoParts.push('КГП - ' + String(row.f).trim());
+        }
+
+        var popupHtml = infoParts.length ? infoParts.join(', ') : '—';
+        makeDeploymentMarker(coords, popupHtml).addTo(deploymentMarkersLayer);
+        pts.push(coords);
+      });
+
+      if (pts.length && deploymentMapInstance) {
+        var fg = L.featureGroup(pts.map(function(p) { return L.circleMarker(p); }));
+        deploymentMapInstance.fitBounds(fg.getBounds().pad(0.15));
+      }
+
+      if (pts.length === 0) {
+        var reason = rows.length === 0
+          ? 'Таблиця порожня або немає доступу'
+          : 'Є ' + rows.length + ' рядків, але координати не розпізнано (перевірте формат у колонці A)';
+        setDeploymentStatus('error', '⚠️ Точок немає: ' + reason);
+      } else {
+        var t = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+        setDeploymentStatus('ok', '✅ ' + pts.length + ' точок · ' + t);
+      }
+    })
+    .catch(function(err) {
+      console.error('❌ Помилка завантаження даних "Залучення підрозділів":', err);
+      setDeploymentStatus('error', '❌ Помилка з’єднання зі скриптом');
+    });
 }
 </script>
 
