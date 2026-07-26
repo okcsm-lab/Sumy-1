@@ -1593,12 +1593,18 @@ function closeDocViewer() {
 <script>
 var deploymentMapInitialized = false;
 var deploymentMapInstance   = null;
-var deploymentMarkersLayer  = null;
+var deploymentLayerGroups   = {};
+var deploymentLayerVisible  = {};
 var deploymentSyncTimer     = null;
 
-// URL Apps Script Web App (Deploy -> New deployment -> Web app)
-var DEPLOYMENT_API_URL = 'https://script.google.com/macros/s/AKfycbwEhJAJi2kI4Ua5QiPbbY7YbzmO0AfzCTDHOUTneNzrHB5fmYpgLWm4ktLXwZ2gUuijRw/exec';
-var DEPLOYMENT_SYNC_INTERVAL = 5 * 60 * 1000; // 5 хвилин
+var DEPLOYMENT_API_URL = 'https://script.google.com/macros/s/AKfycbxE0GlUDTRIHVFStCOqgl74BGWvIFNKrpIx3zztN5o4CoqaxTAK45JKGJzAheuUMC00gA/exec';
+var DEPLOYMENT_SYNC_INTERVAL = 5 * 60 * 1000;
+
+var DEPLOYMENT_TYPE_STYLE = {
+  'Пожежа':  { icon: '🚒', color: '#f97316' },
+  'АРР/АВР': { icon: '🔨', color: '#38bdf8' }
+};
+var DEPLOYMENT_DEFAULT_STYLE = { icon: '🚒', color: '#94a3b8' };
 
 function openDeploymentMap() {
   document.getElementById('deploymentWindow').classList.add('show');
@@ -1631,8 +1637,6 @@ function initDeploymentMap() {
     maxZoom: 19
   }).addTo(deploymentMapInstance);
 
-  deploymentMarkersLayer = L.layerGroup().addTo(deploymentMapInstance);
-
   setTimeout(function() { deploymentMapInstance.invalidateSize(); }, 150);
 
   loadDeploymentData();
@@ -1641,7 +1645,6 @@ function initDeploymentMap() {
   }
 }
 
-// Парсинг координат (формати: "51.234, 34.567" або "51.234;34.567")
 function parseDeploymentCoords(raw) {
   if (!raw) return null;
   var s = String(raw).trim().replace(/\s*[;,]\s*/g, ',');
@@ -1652,18 +1655,18 @@ function parseDeploymentCoords(raw) {
   return [lat, lng];
 }
 
-function makeDeploymentMarker(coords, popupHtml) {
+function makeDeploymentMarker(coords, style, popupHtml) {
   var size = window.innerWidth < 600 ? 20 : 26;
   var divIcon = L.divIcon({
-    html: '<div style="font-size:' + size + 'px; line-height:1; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.8)); cursor:pointer;">🚒</div>',
+    html: '<div style="font-size:' + size + 'px; line-height:1; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.8)); cursor:pointer;">' + style.icon + '</div>',
     className: '',
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -(size / 2 + 4)]
   });
   return L.marker(coords, { icon: divIcon }).bindPopup(
-    '<div class="popup-layer" style="color:#38bdf8">🚒 Подія</div>' +
-    '<div class="popup-desc">' + popupHtml + '</div>',
+    '<div class="popup-layer" style="color:' + style.color + '">' + style.icon + ' ' + (style.label || 'Подія') + '</div>' +
+    '<div class="popup-desc">' + (popupHtml || '—') + '</div>',
     { maxWidth: 260 }
   );
 }
@@ -1677,6 +1680,44 @@ function setDeploymentStatus(state, text) {
   if (state === 'ok') dot.classList.add('ok');
   if (state === 'error') span.style.color = '#ef4444'; else span.style.color = '';
   span.textContent = text;
+}
+
+function buildDeploymentLegend(counts) {
+  var existing = document.getElementById('deployment-legend');
+  if (existing) existing.remove();
+
+  var legend = document.createElement('div');
+  legend.id = 'deployment-legend';
+  legend.className = 'map-legend';
+  legend.style.display = 'block';
+
+  var html = '<div class="map-legend-title">Шари</div>';
+  Object.keys(counts).forEach(function(type) {
+    var style = DEPLOYMENT_TYPE_STYLE[type] || DEPLOYMENT_DEFAULT_STYLE;
+    html += '<div class="legend-item" data-type="' + type + '">' +
+              '<span style="font-size:16px;line-height:1;">' + style.icon + '</span>' +
+              '<span style="color:#e2e8f0">' + type + ' <span style="color:#64748b">(' + counts[type] + ')</span></span>' +
+            '</div>';
+  });
+  legend.innerHTML = html;
+  document.getElementById('deployment-map').parentNode.appendChild(legend);
+
+  legend.querySelectorAll('.legend-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      var type = item.dataset.type;
+      var group = deploymentLayerGroups[type];
+      if (!group) return;
+      if (deploymentLayerVisible[type]) {
+        deploymentMapInstance.removeLayer(group);
+        deploymentLayerVisible[type] = false;
+        item.classList.add('hidden-layer');
+      } else {
+        group.addTo(deploymentMapInstance);
+        deploymentLayerVisible[type] = true;
+        item.classList.remove('hidden-layer');
+      }
+    });
+  });
 }
 
 function loadDeploymentData() {
@@ -1711,37 +1752,33 @@ function loadDeploymentData() {
       }
 
       var rows = data.rows || [];
-      console.log('📊 Залучення підрозділів — отримано рядків:', rows.length, 'debug:', data.debug);
+      console.log('📊 Отримано рядків:', rows.length, 'debug:', data.debug);
 
-      if (deploymentMarkersLayer) deploymentMarkersLayer.clearLayers();
+      Object.values(deploymentLayerGroups).forEach(function(g) {
+        deploymentMapInstance.removeLayer(g);
+      });
+      deploymentLayerGroups  = {};
+      deploymentLayerVisible = {};
 
       var pts = [];
-      var skippedCoords = 0;
+      var counts = {};
 
       rows.forEach(function(row) {
-        var coords = parseDeploymentCoords(row.coords); // ← H, вже підставлено скриптом як "coords"
-        if (!coords) { skippedCoords++; return; }
+        var coords = parseDeploymentCoords(row.coords);
+        if (!coords) return;
 
-        var infoParts = [];
+        var type  = row.type || 'Інше';
+        var style = DEPLOYMENT_TYPE_STYLE[type] || DEPLOYMENT_DEFAULT_STYLE;
+        style.label = type;
 
-        if (row.c !== undefined && row.c !== null && String(row.c).trim() !== '') {
-          infoParts.push(String(row.c).trim());
+        if (!deploymentLayerGroups[type]) {
+          deploymentLayerGroups[type]  = L.layerGroup().addTo(deploymentMapInstance);
+          deploymentLayerVisible[type] = true;
+          counts[type] = 0;
         }
-        if (row.d !== undefined && row.d !== null && String(row.d).trim() !== '') {
-          infoParts.push(String(row.d).trim() + ' од.тех.');
-        }
-        if (row.e !== undefined && row.e !== null && String(row.e).trim() !== '') {
-          infoParts.push(String(row.e).trim() + ' чол. о/с');
-        }
-        if (row.f !== undefined && row.f !== null && String(row.f).trim() !== '') {
-          infoParts.push('КГП - ' + String(row.f).trim());
-        }
-        if (row.g !== undefined && row.g !== null && String(row.g).trim() !== '') {
-          infoParts.push(String(row.g).trim());
-        }
+        counts[type]++;
 
-        var popupHtml = infoParts.length ? infoParts.join(', ') : '—';
-        makeDeploymentMarker(coords, popupHtml).addTo(deploymentMarkersLayer);
+        makeDeploymentMarker(coords, style, row.info).addTo(deploymentLayerGroups[type]);
         pts.push(coords);
       });
 
@@ -1750,10 +1787,12 @@ function loadDeploymentData() {
         deploymentMapInstance.fitBounds(fg.getBounds().pad(0.15));
       }
 
+      buildDeploymentLegend(counts);
+
       if (pts.length === 0) {
         var reason = rows.length === 0
-          ? 'Таблиця порожня або немає доступу'
-          : 'Є ' + rows.length + ' рядків, але координати не розпізнано (перевірте колонку H)';
+          ? 'Дані відсутні в обох аркушах'
+          : 'Є ' + rows.length + ' рядків, але координати не розпізнано';
         setDeploymentStatus('error', '⚠️ Точок немає: ' + reason);
       } else {
         var t = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
@@ -1761,11 +1800,10 @@ function loadDeploymentData() {
       }
     })
     .catch(function(err) {
-      console.error('❌ Помилка завантаження даних "Залучення підрозділів":', err);
+      console.error('❌ Помилка завантаження даних:', err);
       setDeploymentStatus('error', '❌ Помилка з’єднання зі скриптом');
     });
 }
 </script>
-
 </body>
 </html>
