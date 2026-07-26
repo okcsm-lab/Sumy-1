@@ -1597,8 +1597,7 @@ var deploymentMarkersLayer  = null;
 var deploymentSyncTimer     = null;
 
 // URL Apps Script Web App (Deploy -> New deployment -> Web app)
-// Взяти зі скрипта, прив'язаного до таблиці 1vPf50hPURWtJSE6t56TXfvb3z2iQc8kHH-1sj84ENQg
-var DEPLOYMENT_API_URL = 'https://script.google.com/macros/s/AKfycbx3Ki--9U_vBmaRX40AeOdVr7bTzTb1KwWiDLdx2D5yR_z0g2NkYsKlROLA-QKjJBNHjQ/exec';
+var DEPLOYMENT_API_URL = 'https://script.google.com/macros/s/AKfycbwEhJAJi2kI4Ua5QiPbbY7YbzmO0AfzCTDHOUTneNzrHB5fmYpgLWm4ktLXwZ2gUuijRw/exec';
 var DEPLOYMENT_SYNC_INTERVAL = 5 * 60 * 1000; // 5 хвилин
 
 function openDeploymentMap() {
@@ -1642,7 +1641,7 @@ function initDeploymentMap() {
   }
 }
 
-// Парсинг координат з колонки A (формати: "51.234, 34.567" або "51.234;34.567")
+// Парсинг координат (формати: "51.234, 34.567" або "51.234;34.567")
 function parseDeploymentCoords(raw) {
   if (!raw) return null;
   var s = String(raw).trim().replace(/\s*[;,]\s*/g, ',');
@@ -1680,9 +1679,8 @@ function setDeploymentStatus(state, text) {
   span.textContent = text;
 }
 
-// Завантаження точок через Google Apps Script Web App
 function loadDeploymentData() {
-  if (!DEPLOYMENT_API_URL || DEPLOYMENT_API_URL.indexOf('ВСТАВТЕ') === 0) {
+  if (!DEPLOYMENT_API_URL) {
     setDeploymentStatus('error', '❌ Не вказано DEPLOYMENT_API_URL');
     return;
   }
@@ -1712,8 +1710,7 @@ function loadDeploymentData() {
         return;
       }
 
-      var labels = data.labels || {};
-      var rows   = data.rows   || [];
+      var rows = data.rows || [];
       console.log('📊 Залучення підрозділів — отримано рядків:', rows.length, 'debug:', data.debug);
 
       if (deploymentMarkersLayer) deploymentMarkersLayer.clearLayers();
@@ -1722,26 +1719,25 @@ function loadDeploymentData() {
       var skippedCoords = 0;
 
       rows.forEach(function(row) {
-        var coords = parseDeploymentCoords(row.coords);
+        var coords = parseDeploymentCoords(row.coords); // ← H, вже підставлено скриптом як "coords"
         if (!coords) { skippedCoords++; return; }
 
         var infoParts = [];
 
-        // C — як є (наприклад "3 ДПРЧ")
         if (row.c !== undefined && row.c !== null && String(row.c).trim() !== '') {
           infoParts.push(String(row.c).trim());
         }
-        // D — кількість одиниць техніки -> "1 од.тех."
         if (row.d !== undefined && row.d !== null && String(row.d).trim() !== '') {
           infoParts.push(String(row.d).trim() + ' од.тех.');
         }
-        // E — кількість особового складу -> "4 чол. о/с"
         if (row.e !== undefined && row.e !== null && String(row.e).trim() !== '') {
           infoParts.push(String(row.e).trim() + ' чол. о/с');
         }
-        // F — керівник гасіння пожежі -> "КГП - Рута Б.І."
         if (row.f !== undefined && row.f !== null && String(row.f).trim() !== '') {
           infoParts.push('КГП - ' + String(row.f).trim());
+        }
+        if (row.g !== undefined && row.g !== null && String(row.g).trim() !== '') {
+          infoParts.push(String(row.g).trim());
         }
 
         var popupHtml = infoParts.length ? infoParts.join(', ') : '—';
@@ -1757,7 +1753,7 @@ function loadDeploymentData() {
       if (pts.length === 0) {
         var reason = rows.length === 0
           ? 'Таблиця порожня або немає доступу'
-          : 'Є ' + rows.length + ' рядків, але координати не розпізнано (перевірте формат у колонці A)';
+          : 'Є ' + rows.length + ' рядків, але координати не розпізнано (перевірте колонку H)';
         setDeploymentStatus('error', '⚠️ Точок немає: ' + reason);
       } else {
         var t = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
