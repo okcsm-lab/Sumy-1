@@ -1597,13 +1597,17 @@ var deploymentLayerGroups   = {};
 var deploymentLayerVisible  = {};
 var deploymentSyncTimer     = null;
 
-var DEPLOYMENT_API_URL = 'https://script.google.com/macros/s/AKfycbxDdrHe0bN_odJvCpv5f1YIcA-_9YDGIrWXJE19gdNKH-pB1jv2wJ_2QLGXtEFhvOn2Jg/exec';
-var DEPLOYMENT_SYNC_INTERVAL = 5 * 60 * 1000;
+var DEPLOYMENT_API_URL = 'https://script.google.com/macros/s/AKfycbw_4GI9gqdu5P6JrbqxFCnDlblUDErey1H6yyh64jcBeBLXiIep4aVfZNHMQ_2tkoKJ5Q/exec';
+var DEPLOYMENT_SYNC_INTERVAL = 60 * 1000;
 
 var DEPLOYMENT_TYPE_STYLE = {
-  'Пожежа':  { icon: '🚒', color: '#f97316' },
-  'АРР/АВР': { icon: '🔨', color: '#38bdf8' }
+  'Пожежа':            { icon: '🚒', color: '#f97316' },
+  'АРР/АВР':           { icon: '🔨', color: '#38bdf8' },
+  'ДТП':               { icon: '🚗', color: '#f59e0b' },
+  'Надання допомоги':  { icon: '🤝', color: '#22c55e' },
+  'НП на Воді':        { icon: '🌊', color: '#0ea5e9' }
 };
+
 var DEPLOYMENT_DEFAULT_STYLE = { icon: '🚒', color: '#94a3b8' };
 
 function openDeploymentMap() {
