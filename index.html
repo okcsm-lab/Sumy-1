@@ -238,74 +238,40 @@
     }
     .back-home-btn:hover { background: #2563eb; border-color: #2563eb; }
 
-    /* ===== BURGER + SIDEBAR ===== */
-    .burger-btn {
+    /* ===== ПАНЕЛЬ РОЗДІЛІВ (ІКОНКИ) ===== */
+    .icon-toolbar {
       position: fixed; top: 14px; right: 14px; z-index: 1200;
-      width: 40px; height: 40px; background: #1e293b;
-      border: 1px solid #334155; border-radius: 8px;
-      cursor: pointer; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 5px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-      transition: background .2s;
+      display: flex; align-items: center; gap: 8px;
+      background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+      padding: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
     }
-    .burger-btn:hover { background: #2563eb; border-color: #2563eb; }
-    .burger-btn span {
-      display: block; width: 20px; height: 2px;
-      background: #e2e8f0; border-radius: 2px;
-      transition: transform .3s, opacity .3s;
+    .icon-btn-wrap { position: relative; display: flex; }
+    .icon-btn {
+      width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+      background: #0f172a; border: 1px solid #334155; border-radius: 8px;
+      font-size: 18px; line-height: 1; cursor: pointer; color: #e2e8f0;
+      text-decoration: none; transition: background .2s, border-color .2s, transform .15s;
     }
-    .burger-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-    .burger-btn.open span:nth-child(2) { opacity: 0; }
-    .burger-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    .icon-btn:hover { background: #2563eb; border-color: #2563eb; transform: translateY(-1px); }
+    .icon-btn.active-icon { background: #2563eb; border-color: #2563eb; }
 
-    .sidebar-overlay {
-      display: none; position: fixed; inset: 0; z-index: 1100;
-      background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);
+    .icon-dropdown {
+      display: none;
+      position: absolute; top: calc(100% + 8px); right: 0;
+      min-width: 220px; background: #1e293b; border: 1px solid #334155;
+      border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      padding: 6px; z-index: 1250; flex-direction: column; gap: 2px;
     }
-    .sidebar-overlay.active { display: block; }
+    .icon-dropdown.show { display: flex; }
+    .icon-dropdown a {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 10px; color: #cbd5e1; text-decoration: none;
+      font-size: 13px; font-weight: 500; border-radius: 6px;
+      transition: background .15s, color .15s;
+      white-space: nowrap;
+    }
+    .icon-dropdown a:hover { background: #0f172a; color: #f1f5f9; }
 
-    .sidebar {
-      position: fixed; top: 0; right: -300px; width: 280px; height: 100%;
-      z-index: 1150; background: #1e293b;
-      border-left: 2px solid #2563eb;
-      box-shadow: -4px 0 24px rgba(0,0,0,0.5);
-      transition: right .35s cubic-bezier(.4,0,.2,1);
-      display: flex; flex-direction: column; overflow: hidden;
-    }
-    .sidebar.open { right: 0; }
-
-    .sidebar-header {
-      padding: 16px 16px 12px;
-      border-bottom: 1px solid #334155;
-      background: #0f172a;
-      flex-shrink: 0;
-    }
-    .sidebar-header h3 {
-      font-size: 11px; font-weight: 700; color: #94a3b8;
-      text-transform: uppercase; letter-spacing: 0.6px;
-    }
-
-    .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
-    .sidebar-nav::-webkit-scrollbar { width: 4px; }
-    .sidebar-nav::-webkit-scrollbar-track { background: #0f172a; }
-    .sidebar-nav::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
-
-    .sidebar-nav a {
-      display: flex; align-items: center; gap: 10px;
-      padding: 11px 16px; color: #cbd5e1; text-decoration: none;
-      font-size: 13px; font-weight: 500; border-left: 3px solid transparent;
-      transition: background .15s, border-color .15s, color .15s;
-    }
-    .sidebar-nav a:hover { background: #0f172a; border-left-color: #2563eb; color: #f1f5f9; }
-    .sidebar-nav a .nav-num {
-      font-size: 10px; color: #475569; font-family: monospace;
-      min-width: 18px; text-align: right; flex-shrink: 0;
-    }
-    .sidebar-nav a .nav-icon { font-size: 16px; flex-shrink: 0; }
-    .sidebar-nav .nav-divider {
-      height: 1px; background: #334155; margin: 6px 16px;
-    }
-  
 .pdf-btn{
   background:#dc2626;color:#fff;border:none;border-radius:6px;
   padding:6px 12px;cursor:pointer;font-size:12px;font-weight:600;
@@ -884,159 +850,40 @@
   </div>
 </div>
 
-<!-- ===== BURGER BUTTON (видно завжди) ===== -->
-<button class="burger-btn" id="burgerBtn" aria-label="Меню" onclick="toggleSidebar()">
-  <span></span><span></span><span></span>
-</button>
+<!-- ===== ПАНЕЛЬ РОЗДІЛІВ (ІКОНКИ) ===== -->
+<div class="icon-toolbar" id="iconToolbar">
+  <a href="#" class="icon-btn" title="Оперативна інформація" onclick="showSection('operational'); return false;">🚒</a>
+  <a href="#" class="icon-btn" title="Залучення підрозділів" onclick="openDeploymentMap(); return false;">🚚</a>
 
-<!-- OVERLAY -->
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-<!-- SIDEBAR -->
-<nav class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <h3>📋 Розділи</h3>
+  <div class="icon-btn-wrap">
+    <button type="button" class="icon-btn" title="Аналітичні дані" onclick="toggleAnalyticsMenu(event)">📊</button>
+    <div class="icon-dropdown" id="analyticsSubmenu">
+      <a href="https://firms.modaps.eosdis.nasa.gov/map/#d:24hrs;@33.698,51.886,11.328z" target="_blank" rel="noopener noreferrer">🔥 Термоточки</a>
+      <a href="https://openinframap.org/#8.99/50.85/34.7987/A,B,I,L,O,P,S,T,W" target="_blank" rel="noopener noreferrer">⚡ Об'єкти енергетики</a>
+      <a href="https://maps.visicom.ua/c/34.33022,51.14261,14/r/uc0jgxh9g6,uc0jgzb8nh/m/uc0jgxht73?lang=uk" target="_blank" rel="noopener noreferrer">🗺️ Візіком</a>
+      <a href="https://www.ventusky.com/uk#p=50.76;34.14;7" target="_blank" rel="noopener noreferrer">💧 Погода</a>
+    </div>
   </div>
-  <div class="sidebar-nav">
-    <a href="#" onclick="showSection('operational'); return false;"><span class="nav-num"></span>🚒 Оперативна інформація</a>
-    <a href="#" onclick="openDeploymentMap(); return false;"><span class="nav-num"></span>🚒 Залучення підрозділів</a>
-<a href="#" onclick="toggleAnalyticsMenu(); return false;">
-    <span class="nav-num"></span>
-    <span class="nav-icon">📊</span>
-    Аналітичні дані
-    <span id="analyticsArrow" style="margin-left:auto;">▼</span>
-</a>
 
-<div id="analyticsSubmenu" style="display:none;">
+  <div class="icon-btn-wrap">
+    <button type="button" class="icon-btn" title="Нормативні документи" onclick="toggleNormativnyMenu(event)">📁</button>
+    <div class="icon-dropdown" id="normativnySubmenu">
+      <a href="https://zakon.rada.gov.ua/laws/show/z0534-22#Text" target="_blank" rel="noopener noreferrer">116</a>
+      <a href="https://zakon.rada.gov.ua/laws/show/z1839-23#Text" target="_blank" rel="noopener noreferrer">780</a>
+      <a href="https://zakon.rada.gov.ua/laws/show/z0802-18#Text" target="_blank" rel="noopener noreferrer">340-гасіння пожеж</a>
+      <a href="https://ips.ligazakon.net/document/re32253?an=1" target="_blank" rel="noopener noreferrer">340-НС</a>
+      <a href="https://zakon.rada.gov.ua/laws/show/z0835-17#Text" target="_blank" rel="noopener noreferrer">511</a>
+      <a href="https://zakon.rada.gov.ua/laws/show/z0780-15#Text" target="_blank" rel="noopener noreferrer">696</a>
+      <a href="https://zakon.rada.gov.ua/rada/show/v0432388-13#Text" target="_blank" rel="noopener noreferrer">432</a>
+      <a href="#" onclick="openDocViewer('1661.pdf', '📄 1661 — Про затвердження Правил безпеки праці в органах та підрозділах ДСНС'); closeAllDropdowns(); return false;">1661</a>
+    </div>
+  </div>
 
-    <a href="https://firms.modaps.eosdis.nasa.gov/map/#d:24hrs;@33.698,51.886,11.328z"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon">🔥</span>
-       Термоточки
-    </a>
-
-    <a href="https://openinframap.org/#8.99/50.85/34.7987/A,B,I,L,O,P,S,T,W"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon">⚡</span>
-       Об'єкти енергетики
-    </a>
-
-    <a href="https://maps.visicom.ua/c/34.33022,51.14261,14/r/uc0jgxh9g6,uc0jgzb8nh/m/uc0jgxht73?lang=uk"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon">🗺️</span>
-       Візіком
-    </a>
-
-    <a href="https://www.ventusky.com/uk#p=50.76;34.14;7"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon">💧</span>
-       погода
-    </a>
+  <a class="icon-btn" title="Техніка по області" href="https://docs.google.com/spreadsheets/d/1U-RaiGh310Y9wzQBOy9fKwtJg5zvz2S4euk2-gdjoh0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">⛑️</a>
+  <a class="icon-btn" title="Стройова записка" href="https://docs.google.com/spreadsheets/d/1OR9eARR4VgsJXBhjDRVsAoe7oi2InDxR1glKTsWF4a0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">📄</a>
+  <a class="icon-btn" title="Карта планових цілей" href="https://www.google.com/maps/d/edit?mid=1CmrvY-GGd4IFfd1AoOHC_ccLGsNcjyE&ll=51.317472168470005%2C34.479718761653615&z=8" target="_blank" rel="noopener noreferrer">🗺️</a>
+  <a class="icon-btn" title="Карта об'єктів життєзабезпечення" href="https://www.google.com/maps/d/edit?mid=1YIGyP-v3Wllimjc-1i5Gq9ntygp1SL0&ll=51.11818004701509%2C34.09933584093874&z=12" target="_blank" rel="noopener noreferrer">🌐</a>
 </div>
-
-<a href="#" onclick="toggleNormativnyMenu(); return false;">
-    <span class="nav-num"></span>
-    <span class="nav-icon">📁</span>
-    Нормативні документи
-    <span id="normativnyArrow" style="margin-left:auto;">▼</span>
-</a>
-
-<div id="normativnySubmenu" style="display:none;">
-    <a href="https://zakon.rada.gov.ua/laws/show/z0534-22#Text"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon"></span>
-       116
-    </a>
-    <a href="https://zakon.rada.gov.ua/laws/show/z1839-23#Text"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon"></span>
-       780
-    </a>
-<a href="https://zakon.rada.gov.ua/laws/show/z0802-18#Text"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon"></span>
-       340-гасіння пожеж
-    </a>
-<a href="https://ips.ligazakon.net/document/re32253?an=1"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon"></span>
-       340-НС
-    </a>
-<a href="https://zakon.rada.gov.ua/laws/show/z0835-17#Text"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon"></span>
-       511
-    </a>
-<a href="https://zakon.rada.gov.ua/laws/show/z0780-15#Text"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon"></span>
-       696
-    </a>
-<a href="https://zakon.rada.gov.ua/rada/show/v0432388-13#Text"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon"></span>
-       432
-    </a>
-<a href="#" onclick="openDocViewer('1661.pdf', '📄 1661 — Про затвердження Правил безпеки праці в органах та підрозділах ДСНС'); return false;"
-       style="padding-left:45px;">
-       <span class="nav-icon"></span>
-       1661
-    </a>
-</div>
-
-<a href="https://docs.google.com/spreadsheets/d/1U-RaiGh310Y9wzQBOy9fKwtJg5zvz2S4euk2-gdjoh0/edit?gid=0#gid=0"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon">⛑️</span>
-       Техніка по області
-    </a>
-    <a href="https://docs.google.com/spreadsheets/d/1OR9eARR4VgsJXBhjDRVsAoe7oi2InDxR1glKTsWF4a0/edit?gid=0#gid=0"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon">📄</span>
-      Стройова записка
-    </a>
-
-   <a href="https://www.google.com/maps/d/edit?mid=1CmrvY-GGd4IFfd1AoOHC_ccLGsNcjyE&ll=51.317472168470005%2C34.479718761653615&z=8"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon">🗺️</span>
-       Карта планових цілей
-    </a>
-
-    <a href="https://www.google.com/maps/d/edit?mid=1YIGyP-v3Wllimjc-1i5Gq9ntygp1SL0&ll=51.11818004701509%2C34.09933584093874&z=12"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="padding-left:45px;">
-       <span class="nav-icon">🗺️</span>
-       Карта об'єктів життєзабезпеченя
-    </a>
-
 
 <!-- ===== НАВІГАЦІЯ МІЖ СТОРІНКАМИ ===== -->
 <script>
@@ -1056,7 +903,7 @@
     } else {
       document.getElementById('page-home').style.display = 'flex';
     }
-    toggleSidebar(true);
+    closeAllDropdowns();
   }
 
   function goHome() {
@@ -1064,20 +911,21 @@
     document.getElementById('page-home').style.display = 'flex';
   }
 
-  function toggleSidebar(forceClose) {
-    var sidebar = document.getElementById('sidebar');
-    var overlay = document.getElementById('sidebarOverlay');
-    var burger  = document.getElementById('burgerBtn');
-    var isOpen;
-    if (forceClose === true) {
-      isOpen = false;
-      sidebar.classList.remove('open');
-    } else {
-      isOpen = sidebar.classList.toggle('open');
-    }
-    overlay.classList.toggle('active', isOpen);
-    burger.classList.toggle('open', isOpen);
+  function closeAllDropdowns() {
+    document.querySelectorAll('.icon-dropdown.show').forEach(function(d) {
+      d.classList.remove('show');
+    });
+    document.querySelectorAll('.icon-btn.active-icon').forEach(function(b) {
+      b.classList.remove('active-icon');
+    });
   }
+
+  // Закриття спливаючих меню при кліку поза панеллю
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.icon-btn-wrap')) {
+      closeAllDropdowns();
+    }
+  });
 </script>
 
 <!-- ===== КАРТА (оновлена версія - замість старої) ===== -->
@@ -1303,29 +1151,27 @@ function toggleAccordion(btn) {
 }
 </script>
 <script>
-function toggleAnalyticsMenu() {
+function toggleAnalyticsMenu(e) {
+    if (e) e.stopPropagation();
     const menu = document.getElementById('analyticsSubmenu');
-    const arrow = document.getElementById('analyticsArrow');
-
-    if (menu.style.display === 'none' || menu.style.display === '') {
-        menu.style.display = 'block';
-        arrow.textContent = '▲';
-    } else {
-        menu.style.display = 'none';
-        arrow.textContent = '▼';
+    const btn  = e ? e.currentTarget : null;
+    const wasOpen = menu.classList.contains('show');
+    closeAllDropdowns();
+    if (!wasOpen) {
+        menu.classList.add('show');
+        if (btn) btn.classList.add('active-icon');
     }
 }
 
-function toggleNormativnyMenu() {
+function toggleNormativnyMenu(e) {
+    if (e) e.stopPropagation();
     const menu = document.getElementById('normativnySubmenu');
-    const arrow = document.getElementById('normativnyArrow');
-
-    if (menu.style.display === 'none' || menu.style.display === '') {
-        menu.style.display = 'block';
-        arrow.textContent = '▲';
-    } else {
-        menu.style.display = 'none';
-        arrow.textContent = '▼';
+    const btn  = e ? e.currentTarget : null;
+    const wasOpen = menu.classList.contains('show');
+    closeAllDropdowns();
+    if (!wasOpen) {
+        menu.classList.add('show');
+        if (btn) btn.classList.add('active-icon');
     }
 }
 </script>
@@ -1615,7 +1461,7 @@ var DEPLOYMENT_DEFAULT_STYLE = { icon: '🚒', color: '#94a3b8' };
 function openDeploymentMap() {
   document.getElementById('deploymentWindow').classList.add('show');
   document.getElementById('deploymentOverlay').classList.add('show');
-  toggleSidebar(true);
+  closeAllDropdowns();
 
   if (!deploymentMapInitialized) {
     deploymentMapInitialized = true;
