@@ -1596,6 +1596,7 @@ var deploymentMapInstance   = null;
 var deploymentLayerGroups   = {};
 var deploymentLayerVisible  = {};
 var deploymentSyncTimer     = null;
+var deploymentFirstLoad     = true;   // ← новий прапорець
 
 var DEPLOYMENT_API_URL = 'https://script.google.com/macros/s/AKfycbw_4GI9gqdu5P6JrbqxFCnDlblUDErey1H6yyh64jcBeBLXiIep4aVfZNHMQ_2tkoKJ5Q/exec';
 var DEPLOYMENT_SYNC_INTERVAL = 60 * 1000;
@@ -1786,9 +1787,12 @@ function loadDeploymentData() {
         pts.push(coords);
       });
 
-      if (pts.length && deploymentMapInstance) {
-        var fg = L.featureGroup(pts.map(function(p) { return L.circleMarker(p); }));
-        deploymentMapInstance.fitBounds(fg.getBounds().pad(0.15));
+     if (pts.length && deploymentMapInstance) {
+        if (deploymentFirstLoad) {
+          var fg = L.featureGroup(pts.map(function(p) { return L.circleMarker(p); }));
+          deploymentMapInstance.fitBounds(fg.getBounds().pad(0.15));
+          deploymentFirstLoad = false;
+        }
       }
 
       buildDeploymentLegend(counts);
