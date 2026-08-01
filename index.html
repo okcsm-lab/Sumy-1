@@ -240,11 +240,13 @@
 
     /* ===== ПАНЕЛЬ РОЗДІЛІВ (ІКОНКИ) ===== */
     .icon-toolbar {
-      position: fixed; top: 14px; right: 14px; z-index: 1200;
-      display: flex; align-items: center; gap: 8px;
-      background: #1e293b; border: 1px solid #334155; border-radius: 10px;
-      padding: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-    }
+  	position: fixed; top: 14px; right: 14px; z-index: 1200;
+  	display: flex;
+  	flex-direction: column;   /* ← додано */
+  	align-items: center; gap: 8px;
+  	background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+  	padding: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
     .icon-btn-wrap { position: relative; display: flex; }
     .icon-btn {
       width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
@@ -256,12 +258,14 @@
     .icon-btn.active-icon { background: #2563eb; border-color: #2563eb; }
 
     .icon-dropdown {
-      display: none;
-      position: absolute; top: calc(100% + 8px); right: 0;
-      min-width: 220px; background: #1e293b; border: 1px solid #334155;
-      border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      padding: 6px; z-index: 1250; flex-direction: column; gap: 2px;
-    }
+  	display: none;
+  	position: absolute;
+ 	top: 0;
+  	right: calc(100% + 8px);   /* ← замість top: calc(100% + 8px); right: 0 */
+  	min-width: 220px; background: #1e293b; border: 1px solid #334155;
+  	border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  	padding: 6px; z-index: 1250; flex-direction: column; gap: 2px;
+}
     .icon-dropdown.show { display: flex; }
     .icon-dropdown a {
       display: flex; align-items: center; gap: 8px;
