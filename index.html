@@ -238,6 +238,29 @@
     }
     .back-home-btn:hover { background: #2563eb; border-color: #2563eb; }
 
+    /* ===== КНОПКА "ОНОВЛЕННЯ ДАНИХ" (під кнопкою "На головну") ===== */
+    .refresh-btn {
+      position: fixed; top: 60px; left: 14px; z-index: 1200;
+      display: flex; align-items: center; gap: 6px;
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+      border: none; border-radius: 8px;
+      color: #fff; font-size: 11px; font-weight: 700;
+      padding: 7px 12px; cursor: pointer; letter-spacing: 0.2px;
+      box-shadow: 0 2px 10px rgba(37,99,235,0.45);
+      transition: transform .2s ease, box-shadow .2s ease, background .3s ease;
+    }
+    .refresh-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(124,58,237,0.55);
+    }
+    .refresh-btn:active { transform: translateY(0); }
+    .refresh-btn:disabled { cursor: default; }
+    .refresh-btn .refresh-icon {
+      display: inline-block; font-size: 13px; line-height: 1;
+    }
+    .refresh-btn.spinning .refresh-icon { animation: refresh-spin .8s linear infinite; }
+    @keyframes refresh-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
     /* ===== ПАНЕЛЬ РОЗДІЛІВ (ІКОНКИ) ===== */
     .icon-toolbar {
   	position: fixed; top: 14px; right: 14px; z-index: 1200;
@@ -476,6 +499,11 @@
 
 <!-- НА ГОЛОВНУ -->
 <a href="#" class="back-home-btn" onclick="goHome(); return false;">← На головну</a>
+
+<!-- ОНОВЛЕННЯ ДАНИХ -->
+<button onclick="manualRefresh(this)" id="refreshBtn" class="refresh-btn">
+  <span class="refresh-icon">⟳</span><span class="refresh-text">Оновити дані</span>
+</button>
 
 <div class="dashboard-wrapper">
 
@@ -899,6 +927,7 @@
 
     if (name === 'operational') {
       document.getElementById('page-operational').classList.add('active');
+      document.getElementById('iconToolbar').style.display = 'none'; // ховаємо панель
       if (!mapInitialized) {
         mapInitialized = true;
         initMap();
@@ -906,6 +935,7 @@
       }
     } else {
       document.getElementById('page-home').style.display = 'flex';
+      document.getElementById('iconToolbar').style.display = 'flex'; // показуємо на головній
     }
     closeAllDropdowns();
   }
@@ -913,6 +943,7 @@
   function goHome() {
     document.getElementById('page-operational').classList.remove('active');
     document.getElementById('page-home').style.display = 'flex';
+    document.getElementById('iconToolbar').style.display = 'flex'; // показуємо панель знову
   }
 
   function closeAllDropdowns() {
@@ -930,142 +961,187 @@
       closeAllDropdowns();
     }
   });
+
+  // ===== ОНОВЛЕННЯ ДАНИХ (кнопка під "На головну") =====
+  function manualRefresh(btn) {
+    var textEl = btn.querySelector('.refresh-text');
+    var origText = textEl.textContent;
+    btn.classList.add('spinning');
+    btn.disabled = true;
+    textEl.textContent = 'Оновлення...';
+    initSync();
+    if (typeof refreshDsnsMap === 'function') refreshDsnsMap();
+    setTimeout(function() {
+      btn.classList.remove('spinning');
+      textEl.textContent = 'Оновлено ✓';
+      btn.style.background = 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)';
+      setTimeout(function() {
+        textEl.textContent = origText;
+        btn.style.background = '';
+        btn.disabled = false;
+      }, 2000);
+    }, 1500);
+  }
 </script>
 
 <!-- ===== КАРТА (оновлена версія - замість старої) ===== -->
 <script>
+// ВСТАВТЕ СЮДИ ВАШ URL APPS SCRIPT
+var MAP_API_URL = 'https://script.google.com/macros/s/AKfycbwTYEsN6LWDcgcyQ5ccmOF8hfYK1ob98P_vter4L_k5w5HiHDoIieaCytF55R2yBDpxTA/exec';
+
+var DSNS_MAP_LAYERS = [
+  { name: 'Надзвичайні події', color: '#ef4444', icon: '🚨' },
+  { name: 'ВНП',              color: '#3b82f6', icon: '💣' },
+  { name: 'Бойові дії',       color: '#eab308', icon: '🚀' },
+  { name: 'Пожежі',           color: '#f97316', icon: '🔥' }
+];
+
+var dsnsMap          = null;
+var dsnsLayerGroups   = {};
+var dsnsLayerVisible  = {};
+var dsnsMapLoading    = false;
+
 function initMap() {
-  // ВСТАВТЕ СЮДИ ВАШ URL APPS SCRIPT
-  var MAP_API_URL = 'https://script.google.com/macros/s/AKfycbwTYEsN6LWDcgcyQ5ccmOF8hfYK1ob98P_vter4L_k5w5HiHDoIieaCytF55R2yBDpxTA/exec';
-
-  var LAYERS = [
-    { name: 'Надзвичайні події', color: '#ef4444', icon: '🚨' },
-    { name: 'ВНП',              color: '#3b82f6', icon: '💣' },
-    { name: 'Бойові дії',       color: '#eab308', icon: '🚀' },
-    { name: 'Пожежі',           color: '#f97316', icon: '🔥' }
-  ];
-
-  var map = L.map('open-dsns-map', { zoomControl: true, scrollWheelZoom: true, tap: true })
+  dsnsMap = L.map('open-dsns-map', { zoomControl: true, scrollWheelZoom: true, tap: true })
              .setView([51.5, 34.0], 8);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 19
-  }).addTo(map);
+  }).addTo(dsnsMap);
 
-  setTimeout(function() { map.invalidateSize(); }, 100);
+  setTimeout(function() { dsnsMap.invalidateSize(); }, 100);
 
-  var layerGroups  = {};
-  var layerVisible = {};
+  refreshDsnsMap();
+}
 
-  function makeMarker(coords, color, layerName, icon, desc) {
-    var size = window.innerWidth < 600 ? 16 : 20;
-    var divIcon = L.divIcon({
-      html: '<div style="font-size:' + size + 'px; line-height:1; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.8)); cursor:pointer;">' + icon + '</div>',
-      className: '',
-      iconSize: [size, size],
-      iconAnchor: [size / 2, size / 2],
-      popupAnchor: [0, -(size / 2 + 4)]
-    });
-    return L.marker(coords, { icon: divIcon }).bindPopup(
-      '<div class="popup-layer" style="color:' + color + '">' + icon + ' ' + layerName + '</div>' +
-      '<div class="popup-desc">'   + (desc || '—') + '</div>' +
-      '<div class="popup-coords">📍 ' + coords[0].toFixed(5) + ', ' + coords[1].toFixed(5) + '</div>',
-      { maxWidth: 240 }
-    );
+function dsnsMakeMarker(coords, color, layerName, icon, desc) {
+  var size = window.innerWidth < 600 ? 16 : 20;
+  var divIcon = L.divIcon({
+    html: '<div style="font-size:' + size + 'px; line-height:1; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.8)); cursor:pointer;">' + icon + '</div>',
+    className: '',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -(size / 2 + 4)]
+  });
+  return L.marker(coords, { icon: divIcon }).bindPopup(
+    '<div class="popup-layer" style="color:' + color + '">' + icon + ' ' + layerName + '</div>' +
+    '<div class="popup-desc">'   + (desc || '—') + '</div>' +
+    '<div class="popup-coords">📍 ' + coords[0].toFixed(5) + ', ' + coords[1].toFixed(5) + '</div>',
+    { maxWidth: 240 }
+  );
+}
+
+function dsnsParseCoords(raw) {
+  if (!raw) return null;
+  var s = String(raw).trim().replace(/\s*[;,]\s*/g, ',');
+  var p = s.split(',').map(Number).filter(function(n) { return !isNaN(n) && n !== 0; });
+  if (p.length < 2) return null;
+  var lat = p[0], lng = p[1];
+  if (lat < 43 || lat > 54 || lng < 21 || lng > 42) return null;
+  return [lat, lng];
+}
+
+function dsnsLoadLayer(layer, callback) {
+  var group = L.layerGroup().addTo(dsnsMap);
+  dsnsLayerGroups[layer.name]  = group;
+  dsnsLayerVisible[layer.name] = true;
+  var count = 0;
+
+  var id     = '_cb_' + Date.now() + '_' + Math.floor(Math.random() * 999999);
+  var script = document.createElement('script');
+  var timer  = setTimeout(function() { finish(); }, 15000);
+
+  function finish() {
+    clearTimeout(timer);
+    try { delete window[id]; } catch(e) {}
+    if (script.parentNode) script.parentNode.removeChild(script);
+    callback({ name: layer.name, color: layer.color, icon: layer.icon, count: count });
   }
 
-  function parseCoords(raw) {
-    if (!raw) return null;
-    var s = String(raw).trim().replace(/\s*[;,]\s*/g, ',');
-    var p = s.split(',').map(Number).filter(function(n) { return !isNaN(n) && n !== 0; });
-    if (p.length < 2) return null;
-    var lat = p[0], lng = p[1];
-    if (lat < 43 || lat > 54 || lng < 21 || lng > 42) return null;
-    return [lat, lng];
-  }
+  window[id] = function(rows) {
+    console.log('📊 Отримано дані для "' + layer.name + '":', rows);
 
-  function loadLayer(layer, callback) {
-    var group = L.layerGroup().addTo(map);
-    layerGroups[layer.name]  = group;
-    layerVisible[layer.name] = true;
-    var count = 0;
+    if (Array.isArray(rows)) {
+      rows.forEach(function(row) {
+        var coordsRaw = row.coords || row[0] || '';
+        var descRaw   = row.desc || row[1] || '';
 
-    var id     = '_cb_' + Date.now() + '_' + Math.floor(Math.random() * 999999);
-    var script = document.createElement('script');
-    var timer  = setTimeout(function() { finish(); }, 15000);
-
-    function finish() {
-      clearTimeout(timer);
-      try { delete window[id]; } catch(e) {}
-      if (script.parentNode) script.parentNode.removeChild(script);
-      callback({ name: layer.name, color: layer.color, icon: layer.icon, count: count });
-    }
-
-    window[id] = function(rows) {
-      console.log('📊 Отримано дані для "' + layer.name + '":', rows);
-      
-      if (Array.isArray(rows)) {
-        rows.forEach(function(row) {
-          var coordsRaw = row.coords || row[0] || '';
-          var descRaw   = row.desc || row[1] || '';
-          
-          var coords = parseCoords(coordsRaw);
-          if (!coords) return;
-          count++;
-          makeMarker(coords, layer.color, layer.name, layer.icon, descRaw || '—').addTo(group);
-        });
-      }
-      finish();
-    };
-
-    // Використовуємо параметр map=true для карти
-    script.src = MAP_API_URL + '?map=true&type=' + encodeURIComponent(layer.name) + '&callback=' + id;
-    script.onerror = function() { 
-      console.error('❌ Помилка завантаження:', layer.name);
-      finish(); 
-    };
-    document.head.appendChild(script);
-  }
-
-  function buildLegend(results) {
-    var container = document.getElementById('map-legend-items');
-    container.innerHTML = '';
-    results.forEach(function(r) {
-      var div = document.createElement('div');
-      div.className = 'legend-item';
-      div.innerHTML =
-        '<span style="font-size:16px; line-height:1;">' + r.icon + '</span>' +
-        '<span style="color:#e2e8f0">' + r.name +
-        ' <span style="color:#64748b">(' + r.count + ')</span></span>';
-      div.addEventListener('click', function() {
-        if (layerVisible[r.name]) {
-          map.removeLayer(layerGroups[r.name]);
-          layerVisible[r.name] = false;
-          div.classList.add('hidden-layer');
-        } else {
-          layerGroups[r.name].addTo(map);
-          layerVisible[r.name] = true;
-          div.classList.remove('hidden-layer');
-        }
+        var coords = dsnsParseCoords(coordsRaw);
+        if (!coords) return;
+        count++;
+        dsnsMakeMarker(coords, layer.color, layer.name, layer.icon, descRaw || '—').addTo(group);
       });
-      container.appendChild(div);
+    }
+    finish();
+  };
+
+  // Використовуємо параметр map=true для карти
+  script.src = MAP_API_URL + '?map=true&type=' + encodeURIComponent(layer.name) + '&callback=' + id;
+  script.onerror = function() {
+    console.error('❌ Помилка завантаження:', layer.name);
+    finish();
+  };
+  document.head.appendChild(script);
+}
+
+function dsnsBuildLegend(results) {
+  var container = document.getElementById('map-legend-items');
+  container.innerHTML = '';
+  results.forEach(function(r) {
+    var div = document.createElement('div');
+    div.className = 'legend-item';
+    div.innerHTML =
+      '<span style="font-size:16px; line-height:1;">' + r.icon + '</span>' +
+      '<span style="color:#e2e8f0">' + r.name +
+      ' <span style="color:#64748b">(' + r.count + ')</span></span>';
+    div.addEventListener('click', function() {
+      if (dsnsLayerVisible[r.name]) {
+        dsnsMap.removeLayer(dsnsLayerGroups[r.name]);
+        dsnsLayerVisible[r.name] = false;
+        div.classList.add('hidden-layer');
+      } else {
+        dsnsLayerGroups[r.name].addTo(dsnsMap);
+        dsnsLayerVisible[r.name] = true;
+        div.classList.remove('hidden-layer');
+      }
     });
-    document.getElementById('map-legend').style.display = 'block';
-  }
+    container.appendChild(div);
+  });
+  document.getElementById('map-legend').style.display = 'block';
+}
+
+// Можна викликати повторно (напр. з кнопки "Оновити дані"),
+// щоб перезавантажити мітки на вже створеній карті.
+function refreshDsnsMap() {
+  if (!dsnsMap || dsnsMapLoading) return;
+  dsnsMapLoading = true;
+
+  // прибираємо старі шари перед перезавантаженням
+  Object.keys(dsnsLayerGroups).forEach(function(name) {
+    dsnsMap.removeLayer(dsnsLayerGroups[name]);
+  });
+  dsnsLayerGroups  = {};
+  dsnsLayerVisible = {};
+
+  var dot  = document.getElementById('map-status-dot');
+  var text = document.getElementById('map-status-text');
+  dot.classList.remove('ok');
+  dot.classList.add('loading');
+  text.style.color = '';
+  text.textContent = 'Оновлення…';
 
   var results = [];
   var done    = 0;
 
-  LAYERS.forEach(function(layer) {
-    loadLayer(layer, function(result) {
+  DSNS_MAP_LAYERS.forEach(function(layer) {
+    dsnsLoadLayer(layer, function(result) {
       results.push(result);
       done++;
-      if (done < LAYERS.length) return;
+      if (done < DSNS_MAP_LAYERS.length) return;
 
+      dsnsMapLoading = false;
       var total = results.reduce(function(s, r) { return s + r.count; }, 0);
-      var dot   = document.getElementById('map-status-dot');
-      var text  = document.getElementById('map-status-text');
 
       dot.classList.remove('loading');
       if (total > 0) {
@@ -1076,15 +1152,15 @@ function initMap() {
         text.textContent = 'Даних немає';
       }
 
-      buildLegend(results);
+      dsnsBuildLegend(results);
 
       var pts = [];
-      Object.values(layerGroups).forEach(function(g) {
+      Object.values(dsnsLayerGroups).forEach(function(g) {
         g.eachLayer(function(l) { if (l.getLatLng) pts.push(l.getLatLng()); });
       });
       if (pts.length) {
         var fg = L.featureGroup(pts.map(function(p) { return L.circleMarker(p); }));
-        map.fitBounds(fg.getBounds().pad(0.15));
+        dsnsMap.fitBounds(fg.getBounds().pad(0.15));
       }
     });
   });
