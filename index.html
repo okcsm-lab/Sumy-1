@@ -474,6 +474,57 @@
   overflow:hidden;
 }
 #deployment-map{ width:100%; height:100%; }
+#elevators-map{ width:100%; height:100%; }
+
+/* ===== ПАНЕЛЬ "ЕЛЕВАТОРИ" (РАЙОНИ / НОМЕРИ) ===== */
+#elevators-panel{
+  position:absolute; top:10px; left:10px; z-index:1000;
+  width:250px; max-height:calc(100% - 20px);
+  background:rgba(15,23,42,0.95); border:1px solid #334155; border-radius:10px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.5);
+  display:flex; flex-direction:column; overflow:hidden;
+  font-family:'Segoe UI', Arial, sans-serif;
+}
+#elevatorsPanelHeader{
+  padding:10px 12px 8px; border-bottom:1px solid #334155; background:#1e293b; flex-shrink:0;
+}
+#elevatorsPanelHeader h3{
+  margin:0; font-size:13px; font-weight:700; color:#eab308; letter-spacing:.03em;
+}
+#elevatorsPanelSub{ font-size:10px; color:#64748b; margin-top:2px; }
+#elevatorsResetBtn{
+  margin-top:6px; font-size:11px; background:#0f172a; border:1px solid #334155; border-radius:6px;
+  padding:4px 8px; color:#cbd5e1; cursor:pointer;
+}
+#elevatorsResetBtn:hover{ background:#2563eb; border-color:#2563eb; color:#fff; }
+
+#elevatorsDistrictList{ overflow-y:auto; padding:4px 6px 8px; }
+.elevator-district{ border-bottom:1px solid #1e293b; }
+.elevator-district:last-child{ border-bottom:none; }
+.elevator-district-title{
+  width:100%; text-align:left; background:none; border:none;
+  padding:8px 6px; font-size:12px; font-weight:600; color:#e2e8f0;
+  cursor:pointer; display:flex; justify-content:space-between; align-items:center;
+}
+.elevator-district-title:hover{ color:#38bdf8; }
+.elevator-district-title .count{ font-weight:400; font-size:10px; color:#64748b; }
+.elevator-district-title .arrow{ transition:transform .15s ease; display:inline-block; margin-left:4px; }
+.elevator-district.open .elevator-district-title .arrow{ transform:rotate(90deg); }
+
+.elevator-numbers{
+  display:none; flex-direction:column; gap:5px; padding:2px 6px 10px;
+}
+.elevator-district.open .elevator-numbers{ display:flex; }
+
+.elevator-chip{
+  min-width:26px; max-width:100%; text-align:left; padding:4px 8px; font-size:11px;
+  line-height:1.35; border-radius:5px; background:#0f172a; border:1px solid #334155; color:#cbd5e1;
+  cursor:pointer; user-select:none; word-break:break-word;
+}
+.elevator-chip:hover{ border-color:#eab308; }
+.elevator-chip.active{ background:#eab308; border-color:#eab308; color:#1e293b; font-weight:700; }
+
+#elevatorsEmptyNote{ padding:8px 12px; font-size:11px; color:#94a3b8; }
 
 </style>
 
@@ -882,10 +933,36 @@
   </div>
 </div>
 
+<!-- ===== ПОВНОЕКРАННА КАРТА "ЕЛЕВАТОРИ" ===== -->
+<div class="deployment-overlay" id="elevatorsOverlay" onclick="closeElevatorsMap()"></div>
+<div class="deployment-window" id="elevatorsWindow">
+  <div class="deployment-header">
+    <span>🌾 Елеватори</span>
+    <span class="deployment-close" onclick="closeElevatorsMap()">✖</span>
+  </div>
+  <div class="deployment-body">
+    <div id="elevators-map"></div>
+    <div class="map-statusbar">
+      <div class="dot-status loading" id="elevators-status-dot"></div>
+      <span id="elevators-status-text">Завантаження…</span>
+    </div>
+    <div id="elevators-panel">
+      <div id="elevatorsPanelHeader">
+        <h3>🌾 Елеватори</h3>
+        <div id="elevatorsPanelSub">Район → номер об'єкта</div>
+        <button id="elevatorsResetBtn" onclick="resetElevatorSelection()">Показати всі точки</button>
+      </div>
+      <div id="elevatorsDistrictList"></div>
+      <div id="elevatorsEmptyNote" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== ПАНЕЛЬ РОЗДІЛІВ (ІКОНКИ) ===== -->
 <div class="icon-toolbar" id="iconToolbar">
   <a href="#" class="icon-btn" title="Оперативна інформація" onclick="showSection('operational'); return false;">🚒</a>
   <a href="#" class="icon-btn" title="Залучення підрозділів" onclick="openDeploymentMap(); return false;">🚚</a>
+  <a href="#" class="icon-btn" title="Елеватори" onclick="openElevatorsMap(); return false;">🌾</a>
 
   <div class="icon-btn-wrap">
     <button type="button" class="icon-btn" title="Аналітичні дані" onclick="toggleAnalyticsMenu(event)">📊</button>
@@ -1739,6 +1816,354 @@ function loadDeploymentData() {
     .catch(function(err) {
       console.error('❌ Помилка завантаження даних:', err);
       setDeploymentStatus('error', '❌ Помилка з’єднання зі скриптом');
+    });
+}
+</script>
+
+<!-- ===== ПОВНОЕКРАННА КАРТА "ЕЛЕВАТОРИ" ===== -->
+<script>
+var elevatorsMapInitialized = false;
+var elevatorsMapInstance    = null;
+var elevatorsLayerGroups    = {};
+var elevatorsLayerVisible   = {};
+var elevatorsSyncTimer      = null;
+var elevatorsFirstLoad      = true;
+var elevatorsMarkersByNum   = {};   // num -> { marker, type, district }
+var elevatorsSelectedNums   = new Set();
+var elevatorsDistrictOrder  = ['Сумський', 'Конотопський', 'Шосткинський', 'Роменський', 'Охтирський', 'Припинено діяльність через воєнні дії'];
+
+// ВСТАВТЕ СЮДИ URL APPS SCRIPT ДРУГОЇ ТАБЛИЦІ (ЕЛЕВАТОРИ)
+// Формат відповіді скрипта такий самий, як і для DEPLOYMENT_API_URL:
+// { "rows": [ { "coords": "51.123,34.456", "type": "Елеватор", "info": "..." }, ... ] }
+var ELEVATORS_API_URL = 'https://script.google.com/macros/s/AKfycbx_7EPOqBU_PQ7OyfbXNdTHGfd9MCHEi81h0vj5a4qNBSOaG-mIJWcKIjq3SWivXF6e5A/exec';
+var ELEVATORS_SYNC_INTERVAL = 60 * 1000;
+
+var ELEVATOR_TYPE_STYLE = {
+  'Елеватор': { icon: '🌾', color: '#eab308' }
+};
+var ELEVATOR_DEFAULT_STYLE = { icon: '🌾', color: '#eab308' };
+
+function openElevatorsMap() {
+  document.getElementById('elevatorsWindow').classList.add('show');
+  document.getElementById('elevatorsOverlay').classList.add('show');
+  closeAllDropdowns();
+
+  if (!elevatorsMapInitialized) {
+    elevatorsMapInitialized = true;
+    initElevatorsMap();
+  } else if (elevatorsMapInstance) {
+    setTimeout(function() { elevatorsMapInstance.invalidateSize(); }, 100);
+    loadElevatorsData();
+  }
+}
+
+function closeElevatorsMap() {
+  document.getElementById('elevatorsWindow').classList.remove('show');
+  document.getElementById('elevatorsOverlay').classList.remove('show');
+}
+
+function initElevatorsMap() {
+  elevatorsMapInstance = L.map('elevators-map', {
+    zoomControl: true,
+    scrollWheelZoom: true,
+    tap: true
+  }).setView([51.5, 34.0], 8);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(elevatorsMapInstance);
+
+  setTimeout(function() { elevatorsMapInstance.invalidateSize(); }, 150);
+
+  loadElevatorsData();
+  if (!elevatorsSyncTimer) {
+    elevatorsSyncTimer = setInterval(loadElevatorsData, ELEVATORS_SYNC_INTERVAL);
+  }
+}
+
+function parseElevatorsCoords(raw) {
+  if (!raw) return null;
+  var s = String(raw).trim().replace(/\s*[;,]\s*/g, ',');
+  var p = s.split(',').map(Number).filter(function(n) { return !isNaN(n) && n !== 0; });
+  if (p.length < 2) return null;
+  var lat = p[0], lng = p[1];
+  if (lat < 43 || lat > 54 || lng < 21 || lng > 42) return null;
+  return [lat, lng];
+}
+
+function makeElevatorMarker(coords, style, popupHtml) {
+  var size = window.innerWidth < 600 ? 20 : 26;
+  var divIcon = L.divIcon({
+    html: '<div style="font-size:' + size + 'px; line-height:1; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.8)); cursor:pointer;">' + style.icon + '</div>',
+    className: '',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -(size / 2 + 4)]
+  });
+  return L.marker(coords, { icon: divIcon }).bindPopup(
+    '<div class="popup-layer" style="color:' + style.color + '">' + style.icon + ' ' + (style.label || 'Елеватор') + '</div>' +
+    '<div class="popup-desc">' + (popupHtml || '—') + '</div>',
+    { maxWidth: 260 }
+  );
+}
+
+function setElevatorsStatus(state, text) {
+  var dot  = document.getElementById('elevators-status-dot');
+  var span = document.getElementById('elevators-status-text');
+  if (!dot || !span) return;
+  dot.classList.remove('loading', 'ok');
+  if (state === 'loading') dot.classList.add('loading');
+  if (state === 'ok') dot.classList.add('ok');
+  if (state === 'error') span.style.color = '#ef4444'; else span.style.color = '';
+  span.textContent = text;
+}
+
+function buildElevatorsLegend(counts) {
+  var existing = document.getElementById('elevators-legend');
+  if (existing) existing.remove();
+
+  var legend = document.createElement('div');
+  legend.id = 'elevators-legend';
+  legend.className = 'map-legend';
+  legend.style.display = 'block';
+
+  var html = '<div class="map-legend-title">Шари</div>';
+  Object.keys(counts).forEach(function(type) {
+    var style = ELEVATOR_TYPE_STYLE[type] || ELEVATOR_DEFAULT_STYLE;
+    html += '<div class="legend-item" data-type="' + type + '">' +
+              '<span style="font-size:16px;line-height:1;">' + style.icon + '</span>' +
+              '<span style="color:#e2e8f0">' + type + ' <span style="color:#64748b">(' + counts[type] + ')</span></span>' +
+            '</div>';
+  });
+  legend.innerHTML = html;
+  document.getElementById('elevators-map').parentNode.appendChild(legend);
+
+  legend.querySelectorAll('.legend-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      var type = item.dataset.type;
+      var group = elevatorsLayerGroups[type];
+      if (!group) return;
+      if (elevatorsLayerVisible[type]) {
+        elevatorsMapInstance.removeLayer(group);
+        elevatorsLayerVisible[type] = false;
+        item.classList.add('hidden-layer');
+      } else {
+        group.addTo(elevatorsMapInstance);
+        elevatorsLayerVisible[type] = true;
+        item.classList.remove('hidden-layer');
+      }
+    });
+  });
+}
+
+// ===== Панель "Район → номер об'єкта" =====
+
+function updateElevatorsVisibility() {
+  var showAll = elevatorsSelectedNums.size === 0;
+  Object.keys(elevatorsMarkersByNum).forEach(function(num) {
+    var entry = elevatorsMarkersByNum[num];
+    var group = elevatorsLayerGroups[entry.type];
+    if (!group) return;
+    var shouldShow = showAll || elevatorsSelectedNums.has(num);
+    var isShown = group.hasLayer(entry.marker);
+    if (shouldShow && !isShown) group.addLayer(entry.marker);
+    if (!shouldShow && isShown) group.removeLayer(entry.marker);
+  });
+}
+
+function toggleElevatorNum(num, chipEl) {
+  if (elevatorsSelectedNums.has(num)) {
+    elevatorsSelectedNums.delete(num);
+    chipEl.classList.remove('active');
+  } else {
+    elevatorsSelectedNums.add(num);
+    chipEl.classList.add('active');
+  }
+  updateElevatorsVisibility();
+}
+
+function resetElevatorSelection() {
+  elevatorsSelectedNums.clear();
+  document.querySelectorAll('#elevatorsDistrictList .elevator-chip.active').forEach(function(el) {
+    el.classList.remove('active');
+  });
+  updateElevatorsVisibility();
+}
+
+function toggleElevatorDistrict(el) {
+  el.classList.toggle('open');
+}
+
+function renderElevatorsPanel(rows, districts) {
+  var districtNames = (districts && districts.length) ? districts : elevatorsDistrictOrder;
+
+  var byDistrict = {};
+  districtNames.forEach(function(d) { byDistrict[d] = []; });
+  rows.forEach(function(row) {
+    if (!row.district) return;
+    if (!byDistrict[row.district]) byDistrict[row.district] = [];
+    byDistrict[row.district].push(row);
+  });
+
+  var listEl = document.getElementById('elevatorsDistrictList');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+
+  var hasAny = false;
+
+  districtNames.forEach(function(d) {
+    var items = (byDistrict[d] || []).slice().sort(function(a, b) {
+      return Number(a.num) - Number(b.num);
+    });
+    if (items.length === 0) return;
+    hasAny = true;
+
+    var districtEl = document.createElement('div');
+    districtEl.className = 'elevator-district';
+
+    var titleEl = document.createElement('button');
+    titleEl.className = 'elevator-district-title';
+    titleEl.innerHTML = '<span>' + d + '</span>' +
+      '<span class="count">' + items.length + ' <span class="arrow">&#9656;</span></span>';
+    titleEl.onclick = function() { toggleElevatorDistrict(districtEl); };
+    districtEl.appendChild(titleEl);
+
+    var numsEl = document.createElement('div');
+    numsEl.className = 'elevator-numbers';
+    items.forEach(function(row) {
+      var chip = document.createElement('div');
+      chip.className = 'elevator-chip';
+      chip.textContent = row.name || row.num;
+      chip.title = row.name || '';
+      chip.setAttribute('data-num', row.num);
+      if (elevatorsSelectedNums.has(row.num)) chip.classList.add('active');
+      chip.onclick = function() { toggleElevatorNum(row.num, chip); };
+      numsEl.appendChild(chip);
+    });
+    districtEl.appendChild(numsEl);
+
+    listEl.appendChild(districtEl);
+  });
+
+  var emptyNote = document.getElementById('elevatorsEmptyNote');
+  if (!hasAny) {
+    emptyNote.style.display = 'block';
+    emptyNote.textContent = 'Дані по районах не знайдено.';
+  } else {
+    emptyNote.style.display = 'none';
+  }
+}
+
+function loadElevatorsData() {
+  if (!ELEVATORS_API_URL) {
+    setElevatorsStatus('error', '❌ Не вказано ELEVATORS_API_URL (додайте посилання на Apps Script таблиці "Елеватори")');
+    return;
+  }
+
+  setElevatorsStatus('loading', 'Завантаження…');
+
+  var url = ELEVATORS_API_URL + '?_=' + Date.now();
+
+  fetch(url)
+    .then(function(res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.text();
+    })
+    .then(function(text) {
+      var data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error('❌ Відповідь не є JSON:', text);
+        setElevatorsStatus('error', '❌ Відповідь скрипта не JSON (перевірте деплой)');
+        return;
+      }
+
+      if (data.error) {
+        console.error('❌ Помилка скрипта:', data.error, data.debug);
+        setElevatorsStatus('error', '❌ ' + data.error);
+        return;
+      }
+
+      var rows = data.rows || [];
+      console.log('📊 Отримано рядків (елеватори):', rows.length, 'debug:', data.debug);
+
+      Object.values(elevatorsLayerGroups).forEach(function(g) {
+        elevatorsMapInstance.removeLayer(g);
+      });
+      elevatorsLayerGroups  = {};
+      elevatorsLayerVisible = {};
+      elevatorsMarkersByNum = {};
+
+      var pts = [];
+      var counts = {};
+
+      rows.forEach(function(row) {
+        var coords = parseElevatorsCoords(row.coords);
+        if (!coords) return;
+
+        var type  = row.type || 'Елеватор';
+        var style = ELEVATOR_TYPE_STYLE[type] || ELEVATOR_DEFAULT_STYLE;
+        style.label = type;
+
+        if (!elevatorsLayerGroups[type]) {
+          elevatorsLayerGroups[type]  = L.layerGroup().addTo(elevatorsMapInstance);
+          elevatorsLayerVisible[type] = true;
+          counts[type] = 0;
+        }
+        counts[type]++;
+
+        var marker = makeElevatorMarker(coords, style, row.info);
+        marker.addTo(elevatorsLayerGroups[type]);
+
+        if (row.num) {
+          elevatorsMarkersByNum[row.num] = { marker: marker, type: type, district: row.district };
+          marker.on('click', function() {
+            elevatorsSelectedNums.clear();
+            elevatorsSelectedNums.add(row.num);
+            document.querySelectorAll('#elevatorsDistrictList .elevator-chip.active').forEach(function(c) {
+              c.classList.remove('active');
+            });
+            var chip = document.querySelector('#elevatorsDistrictList .elevator-chip[data-num="' + row.num + '"]');
+            if (chip) {
+              chip.classList.add('active');
+              var districtBlock = chip.closest('.elevator-district');
+              if (districtBlock) districtBlock.classList.add('open');
+            }
+            updateElevatorsVisibility();
+          });
+        }
+
+        pts.push(coords);
+      });
+
+      renderElevatorsPanel(rows, data.districts);
+      updateElevatorsVisibility();
+
+      if (pts.length && elevatorsMapInstance) {
+        if (elevatorsFirstLoad) {
+          var fg = L.featureGroup(pts.map(function(p) { return L.circleMarker(p); }));
+          elevatorsMapInstance.fitBounds(fg.getBounds().pad(0.15));
+          elevatorsFirstLoad = false;
+        }
+      }
+
+      buildElevatorsLegend(counts);
+
+      if (pts.length === 0) {
+        var reason = rows.length === 0
+          ? 'Дані відсутні в таблиці'
+          : 'Є ' + rows.length + ' рядків, але координати не розпізнано';
+        setElevatorsStatus('error', '⚠️ Точок немає: ' + reason);
+      } else {
+        var t = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+        setElevatorsStatus('ok', '✅ ' + pts.length + ' точок · ' + t);
+      }
+    })
+    .catch(function(err) {
+      console.error('❌ Помилка завантаження даних (елеватори):', err);
+      setElevatorsStatus('error', '❌ Помилка з’єднання зі скриптом');
     });
 }
 </script>
