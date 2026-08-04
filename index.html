@@ -1832,16 +1832,33 @@ var elevatorsMarkersByNum   = {};   // num -> { marker, type, district }
 var elevatorsSelectedNums   = new Set();
 var elevatorsDistrictOrder  = ['Сумський', 'Конотопський', 'Шосткинський', 'Роменський', 'Охтирський', 'Припинено діяльність через воєнні дії'];
 
+// Назва категорії, для якої малюємо червону іконку зерна замість звичайної жовтої
+var ELEVATORS_STOPPED_DISTRICT = 'Припинено діяльність через воєнні дії';
+
 // ВСТАВТЕ СЮДИ URL APPS SCRIPT ДРУГОЇ ТАБЛИЦІ (ЕЛЕВАТОРИ)
-// Формат відповіді скрипта такий самий, як і для DEPLOYMENT_API_URL:
-// { "rows": [ { "coords": "51.123,34.456", "type": "Елеватор", "info": "..." }, ... ] }
-var ELEVATORS_API_URL = 'https://script.google.com/macros/s/AKfycbx_7EPOqBU_PQ7OyfbXNdTHGfd9MCHEi81h0vj5a4qNBSOaG-mIJWcKIjq3SWivXF6e5A/exec';
+var ELEVATORS_API_URL = 'https://script.google.com/macros/s/AKfycbxzhzPIGZZt-O3YNgdQU-tCm4EW4nyxWEBGIp3iVItKow64Cm_Omz6lGmsmxnNN-CDMag/exec';
 var ELEVATORS_SYNC_INTERVAL = 60 * 1000;
 
 var ELEVATOR_TYPE_STYLE = {
   'Елеватор': { icon: '🌾', color: '#eab308' }
 };
 var ELEVATOR_DEFAULT_STYLE = { icon: '🌾', color: '#eab308' };
+
+// SVG-іконка колоска зерна, заливка кольором передається параметром (працює для будь-якого кольору,
+// на відміну від emoji 🌾, який завжди жовтий і не піддається перефарбуванню через CSS)
+function elevatorGrainSvg(color) {
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" ' +
+         'fill="' + color + '" stroke="' + color + '" stroke-width="0.4">' +
+         '<path d="M12 1.5c-.9 1.6-1.8 2.6-1.8 4.1 0 1.3.8 2.2 1.8 2.2s1.8-.9 1.8-2.2C13.8 4.1 12.9 3.1 12 1.5z"/>' +
+         '<path d="M8.6 4.6c-1 1.3-2 2.1-2 3.6 0 1.2.8 2.1 1.8 2.1.5 0 .9-.2 1.2-.5-.7-1-1-2.2-1-3.4 0-.6.1-1.2.3-1.8-.1 0-.2 0-.3 0z" opacity=".85"/>' +
+         '<path d="M15.4 4.6c1 1.3 2 2.1 2 3.6 0 1.2-.8 2.1-1.8 2.1-.5 0-.9-.2-1.2-.5.7-1 1-2.2 1-3.4 0-.6-.1-1.2-.3-1.8.1 0 .2 0 .3 0z" opacity=".85"/>' +
+         '<path d="M12 6.8c-.9 1.6-1.8 2.6-1.8 4.1 0 1.3.8 2.2 1.8 2.2s1.8-.9 1.8-2.2c0-1.5-.9-2.5-1.8-4.1z"/>' +
+         '<path d="M8.9 9.6c-1 1.3-1.9 2.2-1.9 3.6 0 1.2.8 2.1 1.8 2.1.5 0 .9-.2 1.2-.5-.7-1-1-2.2-1-3.4 0-.6.1-1.2.3-1.7-.1-.1-.3-.1-.4-.1z" opacity=".85"/>' +
+         '<path d="M15.1 9.6c1 1.3 1.9 2.2 1.9 3.6 0 1.2-.8 2.1-1.8 2.1-.5 0-.9-.2-1.2-.5.7-1 1-2.2 1-3.4 0-.6-.1-1.2-.3-1.7.1-.1.3-.1.4-.1z" opacity=".85"/>' +
+         '<path d="M12 12.1c-.9 1.6-1.8 2.6-1.8 4.1 0 1.3.8 2.2 1.8 2.2s1.8-.9 1.8-2.2c0-1.5-.9-2.5-1.8-4.1z"/>' +
+         '<path d="M11.3 18v4.5h1.4V18z"/>' +
+         '</svg>';
+}
 
 function openElevatorsMap() {
   document.getElementById('elevatorsWindow').classList.add('show');
@@ -1902,7 +1919,7 @@ function makeElevatorMarker(coords, style, popupHtml) {
     popupAnchor: [0, -(size / 2 + 4)]
   });
   return L.marker(coords, { icon: divIcon }).bindPopup(
-    '<div class="popup-layer" style="color:' + style.color + '">' + style.icon + ' ' + (style.label || 'Елеватор') + '</div>' +
+    '<div class="popup-layer" style="color:' + style.color + '">' + (style.emojiForLabel || style.icon) + ' ' + (style.label || 'Елеватор') + '</div>' +
     '<div class="popup-desc">' + (popupHtml || '—') + '</div>',
     { maxWidth: 260 }
   );
@@ -1929,11 +1946,13 @@ function buildElevatorsLegend(counts) {
   legend.style.display = 'block';
 
   var html = '<div class="map-legend-title">Шари</div>';
-  Object.keys(counts).forEach(function(type) {
-    var style = ELEVATOR_TYPE_STYLE[type] || ELEVATOR_DEFAULT_STYLE;
-    html += '<div class="legend-item" data-type="' + type + '">' +
-              '<span style="font-size:16px;line-height:1;">' + style.icon + '</span>' +
-              '<span style="color:#e2e8f0">' + type + ' <span style="color:#64748b">(' + counts[type] + ')</span></span>' +
+  Object.keys(counts).forEach(function(key) {
+    var isStopped = key === ELEVATORS_STOPPED_DISTRICT;
+    var label = isStopped ? 'Елеватор (припинено)' : key;
+    var swatch = isStopped ? elevatorGrainSvg('#ef4444') : '🌾';
+    html += '<div class="legend-item" data-type="' + key + '">' +
+              '<span style="font-size:16px;line-height:1;">' + swatch + '</span>' +
+              '<span style="color:#e2e8f0">' + label + ' <span style="color:#64748b">(' + counts[key] + ')</span></span>' +
             '</div>';
   });
   legend.innerHTML = html;
@@ -1941,29 +1960,29 @@ function buildElevatorsLegend(counts) {
 
   legend.querySelectorAll('.legend-item').forEach(function(item) {
     item.addEventListener('click', function() {
-      var type = item.dataset.type;
-      var group = elevatorsLayerGroups[type];
+      var key = item.dataset.type;
+      var group = elevatorsLayerGroups[key];
       if (!group) return;
-      if (elevatorsLayerVisible[type]) {
+      if (elevatorsLayerVisible[key]) {
         elevatorsMapInstance.removeLayer(group);
-        elevatorsLayerVisible[type] = false;
+        elevatorsLayerVisible[key] = false;
         item.classList.add('hidden-layer');
       } else {
         group.addTo(elevatorsMapInstance);
-        elevatorsLayerVisible[type] = true;
+        elevatorsLayerVisible[key] = true;
         item.classList.remove('hidden-layer');
       }
     });
   });
 }
 
-// ===== Панель "Район → номер об'єкта" =====
+// ===== Панель "Район → номер об'єкта" (без змін) =====
 
 function updateElevatorsVisibility() {
   var showAll = elevatorsSelectedNums.size === 0;
   Object.keys(elevatorsMarkersByNum).forEach(function(num) {
     var entry = elevatorsMarkersByNum[num];
-    var group = elevatorsLayerGroups[entry.type];
+    var group = elevatorsLayerGroups[entry.groupKey];
     if (!group) return;
     var shouldShow = showAll || elevatorsSelectedNums.has(num);
     var isShown = group.hasLayer(entry.marker);
@@ -2103,22 +2122,37 @@ function loadElevatorsData() {
         var coords = parseElevatorsCoords(row.coords);
         if (!coords) return;
 
-        var type  = row.type || 'Елеватор';
-        var style = ELEVATOR_TYPE_STYLE[type] || ELEVATOR_DEFAULT_STYLE;
-        style.label = type;
+        var type = row.type || 'Елеватор';
+        // Група для точок з "Припинено діяльність через воєнні дії" — окрема,
+        // щоб можна було вмикати/вимикати шар і мати окрему червону іконку
+        var isStopped = row.district === ELEVATORS_STOPPED_DISTRICT || row.stopped === true;
+        var groupKey = isStopped ? ELEVATORS_STOPPED_DISTRICT : type;
 
-        if (!elevatorsLayerGroups[type]) {
-          elevatorsLayerGroups[type]  = L.layerGroup().addTo(elevatorsMapInstance);
-          elevatorsLayerVisible[type] = true;
-          counts[type] = 0;
+        var style;
+        if (isStopped) {
+          style = {
+            icon: elevatorGrainSvg('#ef4444'), // червона SVG-іконка зерна
+            emojiForLabel: '🌾',
+            color: '#ef4444',
+            label: 'Елеватор (припинено)'
+          };
+        } else {
+          style = ELEVATOR_TYPE_STYLE[type] || ELEVATOR_DEFAULT_STYLE;
+          style = { icon: style.icon, color: style.color, label: type };
         }
-        counts[type]++;
+
+        if (!elevatorsLayerGroups[groupKey]) {
+          elevatorsLayerGroups[groupKey]  = L.layerGroup().addTo(elevatorsMapInstance);
+          elevatorsLayerVisible[groupKey] = true;
+          counts[groupKey] = 0;
+        }
+        counts[groupKey]++;
 
         var marker = makeElevatorMarker(coords, style, row.info);
-        marker.addTo(elevatorsLayerGroups[type]);
+        marker.addTo(elevatorsLayerGroups[groupKey]);
 
         if (row.num) {
-          elevatorsMarkersByNum[row.num] = { marker: marker, type: type, district: row.district };
+          elevatorsMarkersByNum[row.num] = { marker: marker, groupKey: groupKey, district: row.district };
           marker.on('click', function() {
             elevatorsSelectedNums.clear();
             elevatorsSelectedNums.add(row.num);
