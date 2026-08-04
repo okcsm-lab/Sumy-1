@@ -526,6 +526,86 @@
 
 #elevatorsEmptyNote{ padding:8px 12px; font-size:11px; color:#94a3b8; }
 
+/* ===== ПАНЕЛЬ ДЕТАЛЕЙ ЕЛЕВАТОРА (замінює маленький popup) ===== */
+.elevator-detail-overlay{
+  display:none; position:fixed; inset:0; z-index:2000;
+  background:rgba(0,0,0,.5);
+}
+.elevator-detail-overlay.show{ display:block; }
+.elevator-detail-panel{
+  display:flex; flex-direction:column;
+  position:fixed; top:0; right:0; height:100%;
+  width:50vw; max-width:640px; min-width:320px;
+  background:#1e293b; border-left:2px solid #2563eb;
+  box-shadow:-8px 0 30px rgba(0,0,0,.6);
+  z-index:2001;
+  transform:translateX(100%);
+  transition:transform .28s ease;
+  overflow:hidden;
+}
+.elevator-detail-panel.show{ transform:translateX(0); }
+@media (max-width:800px){
+  .elevator-detail-panel{ width:100vw; max-width:none; }
+}
+.elevator-detail-header{
+  flex-shrink:0; height:52px;
+  background:#0f172a; border-bottom:2px solid #2563eb;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 16px; font-weight:700; font-size:14px; color:#f1f5f9;
+}
+.elevator-detail-close{ cursor:pointer; color:#ef4444; font-size:20px; }
+.elevator-detail-body{ flex:1; overflow-y:auto; padding:18px 20px; }
+.elevator-detail-body .info-text{ font-size:14px; line-height:1.7; color:#e2e8f0; }
+.elevator-detail-body .info-text b{ color:#93c5fd; }
+.photo-toggle{
+  margin-top:18px; width:100%; display:flex; align-items:center; justify-content:space-between;
+  background:#0f172a; border:1px solid #334155; border-radius:8px;
+  padding:10px 14px; cursor:pointer; color:#f1f5f9; font-size:13px; font-weight:600;
+}
+.photo-toggle:hover{ border-color:#2563eb; }
+.photo-toggle .arrow{ transition:transform .2s; }
+.photo-toggle.open .arrow{ transform:rotate(180deg); }
+.photo-categories{ display:none; gap:10px; margin-top:10px; }
+.photo-categories.open{ display:flex; }
+.photo-cat-btn{
+  flex:1; text-align:center; background:#0f172a; border:1px solid #334155; border-radius:8px;
+  padding:14px 10px; cursor:pointer; color:#cbd5e1; font-size:13px; font-weight:700;
+}
+.photo-cat-btn .cat-count{ display:block; font-size:11px; font-weight:400; color:#64748b; margin-top:3px; }
+.photo-cat-btn:hover{ border-color:#eab308; color:#eab308; }
+.photo-cat-btn.disabled{ opacity:.4; cursor:default; pointer-events:none; }
+/* ===== ГАЛЕРЕЯ ФОТО (лайтбокс з перегортанням) ===== */
+.photo-gallery-overlay{
+  display:none; position:fixed; inset:0; z-index:2100;
+  background:rgba(0,0,0,.85);
+  align-items:center; justify-content:center;
+}
+.photo-gallery-overlay.show{ display:flex; }
+.photo-gallery-close{
+  position:absolute; top:16px; right:20px; font-size:26px; color:#fff;
+  cursor:pointer; z-index:2102;
+}
+.photo-gallery-counter{
+  position:absolute; top:20px; left:20px; color:#cbd5e1; font-size:13px; z-index:2102;
+}
+.photo-gallery-img-wrap{
+  max-width:90vw; max-height:85vh; display:flex; align-items:center; justify-content:center;
+}
+.photo-gallery-img-wrap img{
+  max-width:90vw; max-height:85vh; object-fit:contain; border-radius:6px;
+  box-shadow:0 8px 40px rgba(0,0,0,.7);
+}
+.photo-gallery-nav{
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:52px; height:52px; border-radius:50%;
+  background:rgba(30,41,59,.85); border:1px solid #334155;
+  color:#fff; font-size:22px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; z-index:2102; user-select:none;
+}
+.photo-gallery-nav:hover{ background:#2563eb; }
+.photo-gallery-nav.prev{ left:16px; }
+.photo-gallery-nav.next{ right:16px; }
+
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1828,24 +1908,19 @@ var elevatorsLayerGroups    = {};
 var elevatorsLayerVisible   = {};
 var elevatorsSyncTimer      = null;
 var elevatorsFirstLoad      = true;
-var elevatorsMarkersByNum   = {};   // num -> { marker, type, district }
+var elevatorsMarkersByNum   = {};
+var elevatorsRowsByNum      = {};   // НОВЕ: зберігаємо повні дані рядка для панелі деталей
 var elevatorsSelectedNums   = new Set();
 var elevatorsDistrictOrder  = ['Сумський', 'Конотопський', 'Шосткинський', 'Роменський', 'Охтирський', 'Припинено діяльність через воєнні дії'];
 
-// Назва категорії, для якої малюємо червону іконку зерна замість звичайної жовтої
 var ELEVATORS_STOPPED_DISTRICT = 'Припинено діяльність через воєнні дії';
 
-// ВСТАВТЕ СЮДИ URL APPS SCRIPT ДРУГОЇ ТАБЛИЦІ (ЕЛЕВАТОРИ)
-var ELEVATORS_API_URL = 'https://script.google.com/macros/s/AKfycbxzhzPIGZZt-O3YNgdQU-tCm4EW4nyxWEBGIp3iVItKow64Cm_Omz6lGmsmxnNN-CDMag/exec';
+var ELEVATORS_API_URL = 'https://script.google.com/macros/s/AKfycbwRRbK3KJM3Ena3aA83TBuM2dfWqin7avP5WblmwgPC_77kmLfRWRE3o3HuabUOyJTPew/exec';
 var ELEVATORS_SYNC_INTERVAL = 60 * 1000;
 
-var ELEVATOR_TYPE_STYLE = {
-  'Елеватор': { icon: '🌾', color: '#eab308' }
-};
+var ELEVATOR_TYPE_STYLE = { 'Елеватор': { icon: '🌾', color: '#eab308' } };
 var ELEVATOR_DEFAULT_STYLE = { icon: '🌾', color: '#eab308' };
 
-// SVG-іконка колоска зерна, заливка кольором передається параметром (працює для будь-якого кольору,
-// на відміну від emoji 🌾, який завжди жовтий і не піддається перефарбуванню через CSS)
 function elevatorGrainSvg(color) {
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" ' +
          'fill="' + color + '" stroke="' + color + '" stroke-width="0.4">' +
@@ -1856,8 +1931,7 @@ function elevatorGrainSvg(color) {
          '<path d="M8.9 9.6c-1 1.3-1.9 2.2-1.9 3.6 0 1.2.8 2.1 1.8 2.1.5 0 .9-.2 1.2-.5-.7-1-1-2.2-1-3.4 0-.6.1-1.2.3-1.7-.1-.1-.3-.1-.4-.1z" opacity=".85"/>' +
          '<path d="M15.1 9.6c1 1.3 1.9 2.2 1.9 3.6 0 1.2-.8 2.1-1.8 2.1-.5 0-.9-.2-1.2-.5.7-1 1-2.2 1-3.4 0-.6-.1-1.2-.3-1.7.1-.1.3-.1.4-.1z" opacity=".85"/>' +
          '<path d="M12 12.1c-.9 1.6-1.8 2.6-1.8 4.1 0 1.3.8 2.2 1.8 2.2s1.8-.9 1.8-2.2c0-1.5-.9-2.5-1.8-4.1z"/>' +
-         '<path d="M11.3 18v4.5h1.4V18z"/>' +
-         '</svg>';
+         '<path d="M11.3 18v4.5h1.4V18z"/></svg>';
 }
 
 function openElevatorsMap() {
@@ -1877,26 +1951,18 @@ function openElevatorsMap() {
 function closeElevatorsMap() {
   document.getElementById('elevatorsWindow').classList.remove('show');
   document.getElementById('elevatorsOverlay').classList.remove('show');
+  closeElevatorDetail();
 }
 
 function initElevatorsMap() {
-  elevatorsMapInstance = L.map('elevators-map', {
-    zoomControl: true,
-    scrollWheelZoom: true,
-    tap: true
-  }).setView([51.5, 34.0], 8);
-
+  elevatorsMapInstance = L.map('elevators-map', { zoomControl: true, scrollWheelZoom: true, tap: true }).setView([51.5, 34.0], 8);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 19
   }).addTo(elevatorsMapInstance);
-
   setTimeout(function() { elevatorsMapInstance.invalidateSize(); }, 150);
-
   loadElevatorsData();
-  if (!elevatorsSyncTimer) {
-    elevatorsSyncTimer = setInterval(loadElevatorsData, ELEVATORS_SYNC_INTERVAL);
-  }
+  if (!elevatorsSyncTimer) elevatorsSyncTimer = setInterval(loadElevatorsData, ELEVATORS_SYNC_INTERVAL);
 }
 
 function parseElevatorsCoords(raw) {
@@ -1909,20 +1975,16 @@ function parseElevatorsCoords(raw) {
   return [lat, lng];
 }
 
-function makeElevatorMarker(coords, style, popupHtml) {
+function makeElevatorMarker(coords, style, num) {
   var size = window.innerWidth < 600 ? 20 : 26;
   var divIcon = L.divIcon({
     html: '<div style="font-size:' + size + 'px; line-height:1; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.8)); cursor:pointer;">' + style.icon + '</div>',
-    className: '',
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    popupAnchor: [0, -(size / 2 + 4)]
+    className: '', iconSize: [size, size], iconAnchor: [size / 2, size / 2]
   });
-  return L.marker(coords, { icon: divIcon }).bindPopup(
-    '<div class="popup-layer" style="color:' + style.color + '">' + (style.emojiForLabel || style.icon) + ' ' + (style.label || 'Елеватор') + '</div>' +
-    '<div class="popup-desc">' + (popupHtml || '—') + '</div>',
-    { maxWidth: 260 }
-  );
+  var marker = L.marker(coords, { icon: divIcon });
+  // Клік по точці відкриває панель деталей (замість маленького popup)
+  marker.on('click', function() { openElevatorDetail(num); });
+  return marker;
 }
 
 function setElevatorsStatus(state, text) {
@@ -1939,12 +2001,10 @@ function setElevatorsStatus(state, text) {
 function buildElevatorsLegend(counts) {
   var existing = document.getElementById('elevators-legend');
   if (existing) existing.remove();
-
   var legend = document.createElement('div');
   legend.id = 'elevators-legend';
   legend.className = 'map-legend';
   legend.style.display = 'block';
-
   var html = '<div class="map-legend-title">Шари</div>';
   Object.keys(counts).forEach(function(key) {
     var isStopped = key === ELEVATORS_STOPPED_DISTRICT;
@@ -1952,12 +2012,10 @@ function buildElevatorsLegend(counts) {
     var swatch = isStopped ? elevatorGrainSvg('#ef4444') : '🌾';
     html += '<div class="legend-item" data-type="' + key + '">' +
               '<span style="font-size:16px;line-height:1;">' + swatch + '</span>' +
-              '<span style="color:#e2e8f0">' + label + ' <span style="color:#64748b">(' + counts[key] + ')</span></span>' +
-            '</div>';
+              '<span style="color:#e2e8f0">' + label + ' <span style="color:#64748b">(' + counts[key] + ')</span></span></div>';
   });
   legend.innerHTML = html;
   document.getElementById('elevators-map').parentNode.appendChild(legend);
-
   legend.querySelectorAll('.legend-item').forEach(function(item) {
     item.addEventListener('click', function() {
       var key = item.dataset.type;
@@ -1975,8 +2033,6 @@ function buildElevatorsLegend(counts) {
     });
   });
 }
-
-// ===== Панель "Район → номер об'єкта" (без змін) =====
 
 function updateElevatorsVisibility() {
   var showAll = elevatorsSelectedNums.size === 0;
@@ -2004,19 +2060,14 @@ function toggleElevatorNum(num, chipEl) {
 
 function resetElevatorSelection() {
   elevatorsSelectedNums.clear();
-  document.querySelectorAll('#elevatorsDistrictList .elevator-chip.active').forEach(function(el) {
-    el.classList.remove('active');
-  });
+  document.querySelectorAll('#elevatorsDistrictList .elevator-chip.active').forEach(function(el) { el.classList.remove('active'); });
   updateElevatorsVisibility();
 }
 
-function toggleElevatorDistrict(el) {
-  el.classList.toggle('open');
-}
+function toggleElevatorDistrict(el) { el.classList.toggle('open'); }
 
 function renderElevatorsPanel(rows, districts) {
   var districtNames = (districts && districts.length) ? districts : elevatorsDistrictOrder;
-
   var byDistrict = {};
   districtNames.forEach(function(d) { byDistrict[d] = []; });
   rows.forEach(function(row) {
@@ -2028,23 +2079,18 @@ function renderElevatorsPanel(rows, districts) {
   var listEl = document.getElementById('elevatorsDistrictList');
   if (!listEl) return;
   listEl.innerHTML = '';
-
   var hasAny = false;
 
   districtNames.forEach(function(d) {
-    var items = (byDistrict[d] || []).slice().sort(function(a, b) {
-      return Number(a.num) - Number(b.num);
-    });
+    var items = (byDistrict[d] || []).slice().sort(function(a, b) { return Number(a.num) - Number(b.num); });
     if (items.length === 0) return;
     hasAny = true;
 
     var districtEl = document.createElement('div');
     districtEl.className = 'elevator-district';
-
     var titleEl = document.createElement('button');
     titleEl.className = 'elevator-district-title';
-    titleEl.innerHTML = '<span>' + d + '</span>' +
-      '<span class="count">' + items.length + ' <span class="arrow">&#9656;</span></span>';
+    titleEl.innerHTML = '<span>' + d + '</span><span class="count">' + items.length + ' <span class="arrow">&#9656;</span></span>';
     titleEl.onclick = function() { toggleElevatorDistrict(districtEl); };
     districtEl.appendChild(titleEl);
 
@@ -2057,63 +2103,41 @@ function renderElevatorsPanel(rows, districts) {
       chip.title = row.name || '';
       chip.setAttribute('data-num', row.num);
       if (elevatorsSelectedNums.has(row.num)) chip.classList.add('active');
-      chip.onclick = function() { toggleElevatorNum(row.num, chip); };
+      chip.onclick = function() {
+        // Клік по назві підприємства в лівій панелі лише фільтрує/виділяє точку на мапі.
+        // Бокова панель з деталями відкривається виключно кліком по самій точці на мапі.
+        toggleElevatorNum(row.num, chip);
+      };
       numsEl.appendChild(chip);
     });
     districtEl.appendChild(numsEl);
-
     listEl.appendChild(districtEl);
   });
 
   var emptyNote = document.getElementById('elevatorsEmptyNote');
-  if (!hasAny) {
-    emptyNote.style.display = 'block';
-    emptyNote.textContent = 'Дані по районах не знайдено.';
-  } else {
-    emptyNote.style.display = 'none';
-  }
+  if (!hasAny) { emptyNote.style.display = 'block'; emptyNote.textContent = 'Дані по районах не знайдено.'; }
+  else { emptyNote.style.display = 'none'; }
 }
 
 function loadElevatorsData() {
-  if (!ELEVATORS_API_URL) {
-    setElevatorsStatus('error', '❌ Не вказано ELEVATORS_API_URL (додайте посилання на Apps Script таблиці "Елеватори")');
-    return;
-  }
-
+  if (!ELEVATORS_API_URL) { setElevatorsStatus('error', '❌ Не вказано ELEVATORS_API_URL'); return; }
   setElevatorsStatus('loading', 'Завантаження…');
-
   var url = ELEVATORS_API_URL + '?_=' + Date.now();
 
   fetch(url)
-    .then(function(res) {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.text();
-    })
+    .then(function(res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
     .then(function(text) {
       var data;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        console.error('❌ Відповідь не є JSON:', text);
-        setElevatorsStatus('error', '❌ Відповідь скрипта не JSON (перевірте деплой)');
-        return;
-      }
-
-      if (data.error) {
-        console.error('❌ Помилка скрипта:', data.error, data.debug);
-        setElevatorsStatus('error', '❌ ' + data.error);
-        return;
-      }
+      try { data = JSON.parse(text); }
+      catch (e) { setElevatorsStatus('error', '❌ Відповідь скрипта не JSON'); return; }
+      if (data.error) { setElevatorsStatus('error', '❌ ' + data.error); return; }
 
       var rows = data.rows || [];
-      console.log('📊 Отримано рядків (елеватори):', rows.length, 'debug:', data.debug);
-
-      Object.values(elevatorsLayerGroups).forEach(function(g) {
-        elevatorsMapInstance.removeLayer(g);
-      });
+      Object.values(elevatorsLayerGroups).forEach(function(g) { elevatorsMapInstance.removeLayer(g); });
       elevatorsLayerGroups  = {};
       elevatorsLayerVisible = {};
       elevatorsMarkersByNum = {};
+      elevatorsRowsByNum    = {};
 
       var pts = [];
       var counts = {};
@@ -2122,24 +2146,11 @@ function loadElevatorsData() {
         var coords = parseElevatorsCoords(row.coords);
         if (!coords) return;
 
-        var type = row.type || 'Елеватор';
-        // Група для точок з "Припинено діяльність через воєнні дії" — окрема,
-        // щоб можна було вмикати/вимикати шар і мати окрему червону іконку
         var isStopped = row.district === ELEVATORS_STOPPED_DISTRICT || row.stopped === true;
-        var groupKey = isStopped ? ELEVATORS_STOPPED_DISTRICT : type;
-
-        var style;
-        if (isStopped) {
-          style = {
-            icon: elevatorGrainSvg('#ef4444'), // червона SVG-іконка зерна
-            emojiForLabel: '🌾',
-            color: '#ef4444',
-            label: 'Елеватор (припинено)'
-          };
-        } else {
-          style = ELEVATOR_TYPE_STYLE[type] || ELEVATOR_DEFAULT_STYLE;
-          style = { icon: style.icon, color: style.color, label: type };
-        }
+        var groupKey = isStopped ? ELEVATORS_STOPPED_DISTRICT : (row.type || 'Елеватор');
+        var style = isStopped
+          ? { icon: elevatorGrainSvg('#ef4444') }
+          : (ELEVATOR_TYPE_STYLE[row.type] || ELEVATOR_DEFAULT_STYLE);
 
         if (!elevatorsLayerGroups[groupKey]) {
           elevatorsLayerGroups[groupKey]  = L.layerGroup().addTo(elevatorsMapInstance);
@@ -2148,48 +2159,29 @@ function loadElevatorsData() {
         }
         counts[groupKey]++;
 
-        var marker = makeElevatorMarker(coords, style, row.info);
+        var marker = makeElevatorMarker(coords, style, row.num);
         marker.addTo(elevatorsLayerGroups[groupKey]);
 
         if (row.num) {
           elevatorsMarkersByNum[row.num] = { marker: marker, groupKey: groupKey, district: row.district };
-          marker.on('click', function() {
-            elevatorsSelectedNums.clear();
-            elevatorsSelectedNums.add(row.num);
-            document.querySelectorAll('#elevatorsDistrictList .elevator-chip.active').forEach(function(c) {
-              c.classList.remove('active');
-            });
-            var chip = document.querySelector('#elevatorsDistrictList .elevator-chip[data-num="' + row.num + '"]');
-            if (chip) {
-              chip.classList.add('active');
-              var districtBlock = chip.closest('.elevator-district');
-              if (districtBlock) districtBlock.classList.add('open');
-            }
-            updateElevatorsVisibility();
-          });
+          elevatorsRowsByNum[row.num] = row;
         }
-
         pts.push(coords);
       });
 
       renderElevatorsPanel(rows, data.districts);
       updateElevatorsVisibility();
 
-      if (pts.length && elevatorsMapInstance) {
-        if (elevatorsFirstLoad) {
-          var fg = L.featureGroup(pts.map(function(p) { return L.circleMarker(p); }));
-          elevatorsMapInstance.fitBounds(fg.getBounds().pad(0.15));
-          elevatorsFirstLoad = false;
-        }
+      if (pts.length && elevatorsMapInstance && elevatorsFirstLoad) {
+        var fg = L.featureGroup(pts.map(function(p) { return L.circleMarker(p); }));
+        elevatorsMapInstance.fitBounds(fg.getBounds().pad(0.15));
+        elevatorsFirstLoad = false;
       }
 
       buildElevatorsLegend(counts);
 
       if (pts.length === 0) {
-        var reason = rows.length === 0
-          ? 'Дані відсутні в таблиці'
-          : 'Є ' + rows.length + ' рядків, але координати не розпізнано';
-        setElevatorsStatus('error', '⚠️ Точок немає: ' + reason);
+        setElevatorsStatus('error', '⚠️ Точок немає');
       } else {
         var t = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
         setElevatorsStatus('ok', '✅ ' + pts.length + ' точок · ' + t);
@@ -2200,6 +2192,120 @@ function loadElevatorsData() {
       setElevatorsStatus('error', '❌ Помилка з’єднання зі скриптом');
     });
 }
+
+// ===== ПАНЕЛЬ ДЕТАЛЕЙ (половина екрана, з правого краю в центр) =====
+var currentDetailRow = null;
+
+function openElevatorDetail(num) {
+  var row = elevatorsRowsByNum[num];
+  if (!row) return;
+  currentDetailRow = row;
+
+  document.getElementById('elevatorDetailTitle').textContent = '🌾 ' + (row.name || 'Елеватор');
+  document.getElementById('elevatorDetailInfo').innerHTML = row.info || '—';
+
+  var pgCount = (row.photosPG || []).length;
+  var pvCount = (row.photosPV || []).length;
+  document.getElementById('elevatorCatPGCount').textContent = pgCount + ' фото';
+  document.getElementById('elevatorCatPVCount').textContent = pvCount + ' фото';
+  document.getElementById('elevatorCatPG').classList.toggle('disabled', pgCount === 0);
+  document.getElementById('elevatorCatPV').classList.toggle('disabled', pvCount === 0);
+
+  // Скидаємо стан розгортання секції фото при кожному новому відкритті
+  document.getElementById('elevatorPhotoCategories').classList.remove('open');
+  document.getElementById('elevatorPhotoToggle').classList.remove('open');
+
+  document.getElementById('elevatorDetailOverlay').classList.add('show');
+  document.getElementById('elevatorDetailPanel').classList.add('show');
+}
+
+function closeElevatorDetail() {
+  document.getElementById('elevatorDetailOverlay').classList.remove('show');
+  document.getElementById('elevatorDetailPanel').classList.remove('show');
+}
+
+function togglePhotoSection() {
+  document.getElementById('elevatorPhotoCategories').classList.toggle('open');
+  document.getElementById('elevatorPhotoToggle').classList.toggle('open');
+}
+
+// ===== ГАЛЕРЕЯ ФОТО (перегортання вправо/вліво) =====
+var galleryPhotos = [];
+var galleryIndex  = 0;
+
+function openGallery(type) {
+  if (!currentDetailRow) return;
+  galleryPhotos = (type === 'pg' ? currentDetailRow.photosPG : currentDetailRow.photosPV) || [];
+  if (galleryPhotos.length === 0) return;
+  galleryIndex = 0;
+  renderGalleryImage();
+  document.getElementById('photoGalleryOverlay').classList.add('show');
+}
+
+function closeGallery() {
+  document.getElementById('photoGalleryOverlay').classList.remove('show');
+}
+
+function renderGalleryImage() {
+  var img = document.getElementById('photoGalleryImg');
+  img.src = galleryPhotos[galleryIndex];
+  document.getElementById('photoGalleryCounter').textContent = (galleryIndex + 1) + ' / ' + galleryPhotos.length;
+}
+
+function galleryNext() {
+  if (!galleryPhotos.length) return;
+  galleryIndex = (galleryIndex + 1) % galleryPhotos.length;
+  renderGalleryImage();
+}
+
+function galleryPrev() {
+  if (!galleryPhotos.length) return;
+  galleryIndex = (galleryIndex - 1 + galleryPhotos.length) % galleryPhotos.length;
+  renderGalleryImage();
+}
+
+// Клавіатура: стрілки для гортання, Esc для закриття
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('photoGalleryOverlay').classList.contains('show')) return;
+  if (e.key === 'ArrowRight') galleryNext();
+  if (e.key === 'ArrowLeft') galleryPrev();
+  if (e.key === 'Escape') closeGallery();
+});
 </script>
+<!-- ===== ПАНЕЛЬ ДЕТАЛЕЙ ЕЛЕВАТОРА ===== -->
+<div class="elevator-detail-overlay" id="elevatorDetailOverlay" onclick="closeElevatorDetail()"></div>
+<div class="elevator-detail-panel" id="elevatorDetailPanel">
+  <div class="elevator-detail-header">
+    <span id="elevatorDetailTitle">🌾 Елеватор</span>
+    <span class="elevator-detail-close" onclick="closeElevatorDetail()">✖</span>
+  </div>
+  <div class="elevator-detail-body">
+    <div class="info-text" id="elevatorDetailInfo"></div>
+
+    <button class="photo-toggle" id="elevatorPhotoToggle" onclick="togglePhotoSection()">
+      <span>📷 Фото</span>
+      <span class="arrow">▾</span>
+    </button>
+    <div class="photo-categories" id="elevatorPhotoCategories">
+      <div class="photo-cat-btn" id="elevatorCatPG" onclick="openGallery('pg')">
+        ПГ <span class="cat-count" id="elevatorCatPGCount">0 фото</span>
+      </div>
+      <div class="photo-cat-btn" id="elevatorCatPV" onclick="openGallery('pv')">
+        ПВ <span class="cat-count" id="elevatorCatPVCount">0 фото</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ГАЛЕРЕЯ ФОТО ===== -->
+<div class="photo-gallery-overlay" id="photoGalleryOverlay">
+  <span class="photo-gallery-close" onclick="closeGallery()">✖</span>
+  <span class="photo-gallery-counter" id="photoGalleryCounter">1 / 1</span>
+  <div class="photo-gallery-nav prev" onclick="galleryPrev()">‹</div>
+  <div class="photo-gallery-img-wrap">
+    <img id="photoGalleryImg" src="" alt="Фото">
+  </div>
+  <div class="photo-gallery-nav next" onclick="galleryNext()">›</div>
+</div>
 </body>
 </html>
