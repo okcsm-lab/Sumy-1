@@ -620,23 +620,12 @@
 .widescreen-btn.active-widescreen{ background:#2563eb; border-color:#2563eb; }
 .widescreen-btn .ws-icon{ font-size:15px; line-height:1; }
 
-/* Справжній повноекранний режим (аналог F11) через Fullscreen API */
-#page-operational:fullscreen,
-#page-operational:-webkit-full-screen,
-#page-operational:-ms-fullscreen{
-  background:#0f172a;
-  overflow-y:auto;
-  padding-top:10px;
-  width:100%;
-  height:100%;
-}
-.deployment-window:fullscreen,
-.deployment-window:-webkit-full-screen,
-.deployment-window:-ms-fullscreen{
-  background:#1e293b;
-  width:100%;
-  height:100%;
-}
+/* Широкий формат для сторінки "Оперативна інформація" */
+.dashboard-wrapper.widescreen-mode{ max-width:100%; padding-left:16px; padding-right:16px; }
+
+/* Широкий формат для карти "Елеватори" — ховаємо бічну панель районів */
+#elevators-panel{ transition:transform .25s ease, opacity .25s ease; }
+#elevators-panel.collapsed{ transform:translateX(calc(-100% - 24px)); opacity:0; pointer-events:none; }
 
 </style>
 
@@ -669,7 +658,7 @@
 </button>
 
 <!-- ШИРОКОФОРМАТНИЙ РЕЖИМ -->
-<button onclick="toggleFullscreenMode('page-operational', this)" id="operationalWidescreenBtn" class="widescreen-btn">
+<button onclick="toggleOperationalWidescreen(this)" id="operationalWidescreenBtn" class="widescreen-btn">
   <span class="ws-icon">⛶</span><span class="ws-text">Широкий формат</span>
 </button>
 
@@ -1047,7 +1036,7 @@
       <div class="dot-status loading" id="deployment-status-dot"></div>
       <span id="deployment-status-text">Завантаження…</span>
     </div>
-    <button onclick="toggleFullscreenMode('deploymentWindow', this)" class="widescreen-btn" style="z-index:1600;">
+    <button onclick="toggleDeploymentWidescreen(this)" class="widescreen-btn" style="z-index:1600;">
       <span class="ws-icon">⛶</span><span class="ws-text">Широкий формат</span>
     </button>
   </div>
@@ -1075,7 +1064,7 @@
       <div id="elevatorsDistrictList"></div>
       <div id="elevatorsEmptyNote" style="display:none;"></div>
     </div>
-    <button onclick="toggleFullscreenMode('elevatorsWindow', this)" class="widescreen-btn" style="z-index:1600;">
+    <button onclick="toggleElevatorsWidescreen(this)" class="widescreen-btn" style="z-index:1600;">
       <span class="ws-icon">⛶</span><span class="ws-text">Широкий формат</span>
     </button>
   </div>
@@ -1429,10 +1418,8 @@ function toggleAccordion(btn) {
 }
 </script>
 
-<!-- ===== ШИРОКОФОРМАТНИЙ РЕЖИМ (справжній Fullscreen API, як F11) ===== -->
+<!-- ===== ШИРОКОФОРМАТНИЙ РЕЖИМ ===== -->
 <script>
-var currentFullscreenBtn = null;
-
 function setWidescreenIcon(btn, active) {
   var icon = btn.querySelector('.ws-icon');
   var text = btn.querySelector('.ws-text');
@@ -1447,63 +1434,37 @@ function setWidescreenIcon(btn, active) {
   }
 }
 
-function getFullscreenElement() {
-  return document.fullscreenElement || document.webkitFullscreenElement ||
-         document.msFullscreenElement || document.mozFullScreenElement || null;
+// Оперативна інформація: розширюємо дашборд на всю ширину екрана
+function toggleOperationalWidescreen(btn) {
+  var wrapper = document.querySelector('.dashboard-wrapper');
+  if (!wrapper) return;
+  var active = wrapper.classList.toggle('widescreen-mode');
+  setWidescreenIcon(btn, active);
 }
 
-function requestFs(el) {
-  if (el.requestFullscreen) return el.requestFullscreen();
-  if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
-  if (el.msRequestFullscreen) return el.msRequestFullscreen();
-  if (el.mozRequestFullScreen) return el.mozRequestFullScreen();
-  return null;
-}
-
-function exitFs() {
-  if (document.exitFullscreen) return document.exitFullscreen();
-  if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
-  if (document.msExitFullscreen) return document.msExitFullscreen();
-  if (document.mozCancelFullScreen) return document.mozCancelFullScreen();
-  return null;
-}
-
-// targetId — елемент, який буде розгорнуто на весь екран (як F11)
-function toggleFullscreenMode(targetId, btn) {
-  var el = document.getElementById(targetId);
-  if (!el) return;
-
-  var fsEl = getFullscreenElement();
-  if (!fsEl) {
-    currentFullscreenBtn = btn;
-    var req = requestFs(el);
-    if (!req && !el.requestFullscreen && !el.webkitRequestFullscreen && !el.msRequestFullscreen && !el.mozRequestFullScreen) {
-      alert('Ваш браузер не підтримує повноекранний режим');
-    }
-  } else {
-    exitFs();
-  }
-}
-
-function handleFullscreenChange() {
-  var fsEl = getFullscreenElement();
-  document.querySelectorAll('.widescreen-btn').forEach(function(b) {
-    setWidescreenIcon(b, !!fsEl && b === currentFullscreenBtn);
-  });
-  if (!fsEl) currentFullscreenBtn = null;
-
-  // Даємо картам перерахувати розміри після переходу в/з повноекранного режиму
+// Залучення підрозділів: ховаємо легенду шарів, щоб карта зайняла весь екран
+function toggleDeploymentWidescreen(btn) {
+  var active = !btn.classList.contains('active-widescreen');
+  var legend = document.getElementById('deployment-legend');
+  if (legend) legend.style.display = active ? 'none' : 'block';
+  setWidescreenIcon(btn, active);
   setTimeout(function() {
-    if (typeof dsnsMap !== 'undefined' && dsnsMap) dsnsMap.invalidateSize();
-    if (typeof deploymentMapInstance !== 'undefined' && deploymentMapInstance) deploymentMapInstance.invalidateSize();
-    if (typeof elevatorsMapInstance !== 'undefined' && elevatorsMapInstance) elevatorsMapInstance.invalidateSize();
-  }, 150);
+    if (deploymentMapInstance) deploymentMapInstance.invalidateSize();
+  }, 260);
 }
 
-document.addEventListener('fullscreenchange', handleFullscreenChange);
-document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-document.addEventListener('msfullscreenchange', handleFullscreenChange);
-document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+// Елеватори: ховаємо панель районів/номерів, щоб карта зайняла весь екран
+function toggleElevatorsWidescreen(btn) {
+  var panel = document.getElementById('elevators-panel');
+  var legend = document.getElementById('elevators-legend');
+  if (!panel) return;
+  var active = panel.classList.toggle('collapsed');
+  if (legend) legend.style.display = active ? 'none' : 'block';
+  setWidescreenIcon(btn, active);
+  setTimeout(function() {
+    if (elevatorsMapInstance) elevatorsMapInstance.invalidateSize();
+  }, 300);
+}
 </script>
 <script>
 function toggleAnalyticsMenu(e) {
