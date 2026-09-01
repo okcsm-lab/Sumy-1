@@ -620,19 +620,28 @@
 .widescreen-btn.active-widescreen{ background:#2563eb; border-color:#2563eb; }
 .widescreen-btn .ws-icon{ font-size:15px; line-height:1; }
 
-/* Справжній повноекранний режим (аналог F11) через Fullscreen API */
-#page-operational:fullscreen,
-#page-operational:-webkit-full-screen,
-#page-operational:-ms-fullscreen{
+/* Справжній повноекранний режим (аналог F11) через Fullscreen API.
+   Тепер у fullscreen переходить весь документ (<html>), а не окремий блок.
+   Це потрібно тому, що спливаючі вікна (інциденти, документи, карта
+   залучення підрозділів, елеватори, панель деталей, галерея фото) лежать
+   у DOM ПОЗА блоками #page-operational / .deployment-window — і якби
+   fullscreen робився лише для цих блоків, браузер показував би тільки їх,
+   а всі попапи та кнопки над ними ставали б невидимими й нефункціональними. */
+html:fullscreen,
+html:-webkit-full-screen,
+html:-ms-fullscreen,
+html:-moz-full-screen{
+  background:#0f172a;
+}
+
+#page-operational.is-fullscreen-target{
   background:#0f172a;
   overflow-y:auto;
   padding-top:10px;
   width:100%;
-  height:100%;
+  min-height:100%;
 }
-.deployment-window:fullscreen,
-.deployment-window:-webkit-full-screen,
-.deployment-window:-ms-fullscreen{
+.deployment-window.is-fullscreen-target{
   background:#1e293b;
   width:100%;
   height:100%;
@@ -1432,6 +1441,7 @@ function toggleAccordion(btn) {
 <!-- ===== ШИРОКОФОРМАТНИЙ РЕЖИМ (справжній Fullscreen API, як F11) ===== -->
 <script>
 var currentFullscreenBtn = null;
+var currentFullscreenTargetId = null;
 
 function setWidescreenIcon(btn, active) {
   var icon = btn.querySelector('.ws-icon');
@@ -1468,7 +1478,14 @@ function exitFs() {
   return null;
 }
 
-// targetId — елемент, який буде розгорнуто на весь екран (як F11)
+// targetId — блок, який ВІЗУАЛЬНО вважається "розгорнутим" (використовується
+// лише для класу is-fullscreen-target і стилізації). Сам fullscreen ми
+// завжди запитуємо для <html> (document.documentElement) — це критично:
+// усі попапи, панелі, картки, кнопки в проєкті лежать у DOM ПОЗА
+// #page-operational / .deployment-window, і якби в fullscreen переходив
+// лише сам блок, браузер показував би тільки його — усе решта (вікна
+// інцидентів, перегляд документів, панель деталей елеватора, галерея фото,
+// кнопки на панелі іконок тощо) ставало б невидимим і нефункціональним.
 function toggleFullscreenMode(targetId, btn) {
   var el = document.getElementById(targetId);
   if (!el) return;
@@ -1476,9 +1493,15 @@ function toggleFullscreenMode(targetId, btn) {
   var fsEl = getFullscreenElement();
   if (!fsEl) {
     currentFullscreenBtn = btn;
-    var req = requestFs(el);
-    if (!req && !el.requestFullscreen && !el.webkitRequestFullscreen && !el.msRequestFullscreen && !el.mozRequestFullScreen) {
+    currentFullscreenTargetId = targetId;
+    var root = document.documentElement;
+    el.classList.add('is-fullscreen-target');
+    var req = requestFs(root);
+    if (!req && !root.requestFullscreen && !root.webkitRequestFullscreen && !root.msRequestFullscreen && !root.mozRequestFullScreen) {
       alert('Ваш браузер не підтримує повноекранний режим');
+      el.classList.remove('is-fullscreen-target');
+      currentFullscreenBtn = null;
+      currentFullscreenTargetId = null;
     }
   } else {
     exitFs();
@@ -1490,7 +1513,14 @@ function handleFullscreenChange() {
   document.querySelectorAll('.widescreen-btn').forEach(function(b) {
     setWidescreenIcon(b, !!fsEl && b === currentFullscreenBtn);
   });
-  if (!fsEl) currentFullscreenBtn = null;
+  if (!fsEl) {
+    if (currentFullscreenTargetId) {
+      var prevEl = document.getElementById(currentFullscreenTargetId);
+      if (prevEl) prevEl.classList.remove('is-fullscreen-target');
+    }
+    currentFullscreenBtn = null;
+    currentFullscreenTargetId = null;
+  }
 
   // Даємо картам перерахувати розміри після переходу в/з повноекранного режиму
   setTimeout(function() {
