@@ -13,34 +13,33 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
 
-    /* ===== ГОЛОВНА СТОРІНКА (ФОН НА ВСЮ СТОРІНКУ) ===== */
-#page-home {
-  position: relative;
-  min-height: 100vh;
-  display: flex; align-items: flex-start; justify-content: center;
-  text-align: center; padding: 0;
-  overflow: hidden;
-}
-#page-home .home-bg {
-  position: absolute; inset: 0;
-  background-image: url('dsns-1.jpeg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  filter: contrast(1) brightness(1) saturate(1);
-  z-index: 0;
-}
-#page-home .home-overlay {
-  position: absolute; inset: 0;
-  background:
-    linear-gradient(180deg, rgba(5,10,25,0.55) 0%, rgba(5,10,25,0) 22%, rgba(5,10,25,0) 70%, rgba(5,10,25,0.65) 100%);
-  z-index: 1;
-}
-#page-home .home-content {
-  position: relative; z-index: 2;
-  width: 100%; max-width: 980px;
-  padding: 48px 24px 0;
-}
+    /* ===== ГОЛОВНА СТОРІНКА ===== */
+    #page-home {
+      position: relative;
+      min-height: 100vh;
+      display: flex; align-items: flex-start; justify-content: center;
+      text-align: center; padding: 0;
+      overflow: hidden;
+    }
+    #page-home .home-bg {
+      position: absolute; inset: 0;
+      background-image: url('dsns-1.jpeg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: contrast(1) brightness(1) saturate(1);
+      z-index: 0;
+    }
+    #page-home .home-overlay {
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(180deg, rgba(5,10,25,0.55) 0%, rgba(5,10,25,0) 22%, rgba(5,10,25,0) 70%, rgba(5,10,25,0.65) 100%);
+      z-index: 1;
+    }
+    #page-home .home-content {
+      position: relative; z-index: 2;
+      width: 100%; max-width: 980px;
+      padding: 48px 24px 0;
     }
     #page-home .home-eyebrow {
       font-family: 'Rajdhani', sans-serif;
@@ -74,21 +73,6 @@
       border-radius: 4px;
       box-shadow: 0 0 14px rgba(56,189,248,0.7);
     }
-    #page-home p.home-sub {
-      font-family: 'Rajdhani', sans-serif;
-      font-weight: 600;
-      font-size: clamp(13px, 1.6vw, 16px);
-      letter-spacing: 0.4px;
-      color: #cbd5e1;
-    }
-    #page-home p.home-hint {
-      font-family: 'Rajdhani', sans-serif;
-      font-weight: 500;
-      font-size: 12px;
-      letter-spacing: 0.5px;
-      color: #64748b;
-      margin-top: 26px;
-    }
 
     /* ===== СТОРІНКА "ОПЕРАТИВНА ІНФОРМАЦІЯ" ===== */
     #page-operational { display: none; }
@@ -111,12 +95,17 @@
       padding: 5px 10px; font-size: 12px; color: #38bdf8; font-family: monospace; font-weight: 600;
     }
 
+    /* ===== ВЕРХНЯ ПАНЕЛЬ ЛІЧИЛЬНИКІВ ===== */
     .top-counters-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
     @media (min-width: 600px) { .top-counters-bar { grid-template-columns: repeat(6, 1fr); } }
     .counter-item {
       background: #1e293b; border-radius: 8px; border: 1px solid #334155;
       padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 3px;
+      cursor: pointer; transition: .2s; user-select: none;
     }
+    .counter-item:hover { border-color: #2563eb; box-shadow: 0 0 14px rgba(37,99,235,.5); }
+    .counter-item.active-incident { background: #24344d; border-color: #2563eb; box-shadow: 0 0 20px #2563eb; }
+
     .counter-label { font-size: 10px; color: #94a3b8; font-weight: 500; text-align: center; line-height: 1.2; }
     .counter-value { font-size: 22px; font-weight: 700; line-height: 1; }
     .fire-alert .counter-value     { color: #ef4444; }
@@ -227,7 +216,7 @@
     .accordion-body { display: none; }
     .accordion-body.open { display: block; }
 
-    /* ===== КНОПКА "НА ГОЛОВНУ" ===== */
+    /* ===== КНОПКИ УПРАВЛІННЯ ===== */
     .back-home-btn {
       position: fixed; top: 14px; left: 14px; z-index: 1200;
       background: #1e293b; border: 1px solid #334155; border-radius: 8px;
@@ -238,7 +227,6 @@
     }
     .back-home-btn:hover { background: #2563eb; border-color: #2563eb; }
 
-    /* ===== КНОПКА "ОНОВЛЕННЯ ДАНИХ" (під кнопкою "На головну") ===== */
     .refresh-btn {
       position: fixed; top: 60px; left: 14px; z-index: 1200;
       display: flex; align-items: center; gap: 6px;
@@ -255,21 +243,17 @@
     }
     .refresh-btn:active { transform: translateY(0); }
     .refresh-btn:disabled { cursor: default; }
-    .refresh-btn .refresh-icon {
-      display: inline-block; font-size: 13px; line-height: 1;
-    }
+    .refresh-btn .refresh-icon { display: inline-block; font-size: 13px; line-height: 1; }
     .refresh-btn.spinning .refresh-icon { animation: refresh-spin .8s linear infinite; }
     @keyframes refresh-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    /* ===== ПАНЕЛЬ РОЗДІЛІВ (ІКОНКИ) ===== */
+    /* ===== ПАНЕЛЬ РОЗДІЛІВ ===== */
     .icon-toolbar {
-  	position: fixed; top: 14px; right: 14px; z-index: 1200;
-  	display: flex;
-  	flex-direction: column;   /* ← додано */
-  	align-items: center; gap: 8px;
-  	background: #1e293b; border: 1px solid #334155; border-radius: 10px;
-  	padding: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-}
+      position: fixed; top: 14px; right: 14px; z-index: 1200;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+      padding: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
     .icon-btn-wrap { position: relative; display: flex; }
     .icon-btn {
       width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
@@ -281,377 +265,279 @@
     .icon-btn.active-icon { background: #2563eb; border-color: #2563eb; }
 
     .icon-dropdown {
-  	display: none;
-  	position: absolute;
- 	top: 0;
-  	right: calc(100% + 8px);   /* ← замість top: calc(100% + 8px); right: 0 */
-  	min-width: 220px; background: #1e293b; border: 1px solid #334155;
-  	border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  	padding: 6px; z-index: 1250; flex-direction: column; gap: 2px;
-}
+      display: none; position: absolute; top: 0; right: calc(100% + 8px);
+      min-width: 220px; background: #1e293b; border: 1px solid #334155;
+      border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      padding: 6px; z-index: 1250; flex-direction: column; gap: 2px;
+    }
     .icon-dropdown.show { display: flex; }
     .icon-dropdown a {
       display: flex; align-items: center; gap: 8px;
       padding: 9px 10px; color: #cbd5e1; text-decoration: none;
       font-size: 13px; font-weight: 500; border-radius: 6px;
-      transition: background .15s, color .15s;
-      white-space: nowrap;
+      transition: background .15s, color .15s; white-space: nowrap;
     }
     .icon-dropdown a:hover { background: #0f172a; color: #f1f5f9; }
 
-.pdf-btn{
-  background:#dc2626;color:#fff;border:none;border-radius:6px;
-  padding:6px 12px;cursor:pointer;font-size:12px;font-weight:600;
-}
-.pdf-btn:hover{background:#b91c1c;}
+    .pdf-btn {
+      background:#dc2626; color:#fff; border:none; border-radius:6px;
+      padding:6px 12px; cursor:pointer; font-size:12px; font-weight:600;
+    }
+    .pdf-btn:hover { background:#b91c1c; }
 
-/* ===== ПОПАП-ВІКНА ІНЦИДЕНТІВ ===== */
-.incident-overlay{
-  display:none;
-  position:fixed; inset:0; z-index:1300;
-  background:rgba(0,0,0,.55);
-}
-.incident-overlay.show{ display:block; }
+    /* ===== ПОПАП-ВІКНА ІНЦИДЕНТІВ ===== */
+    .incident-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 1300;
+      background: rgba(0,0,0,.55);
+    }
+    .incident-overlay.show { display: block; }
 
-.incident-window{
-  display:none;
-  flex-direction:column;
-  position:fixed;
-  top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  width:min(1300px, 95vw);
-  height:min(620px, 85vh);
-  background:#1e293b;
-  border:1px solid #2563eb;
-  border-radius:12px;
-  box-shadow:0 0 40px rgba(37,99,235,.6);
-  z-index:1301;
-}
-.incident-window.show{ display:flex; }
+    .incident-window {
+      display: none;
+      flex-direction: column;
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: min(1600px, 98vw);
+      height: min(720px, 92vh);
+      background: #1e293b;
+      border: 1px solid #2563eb;
+      border-radius: 12px;
+      box-shadow: 0 0 40px rgba(37,99,235,.6);
+      z-index: 1301;
+    }
+    .incident-window.show { display: flex; }
 
-.incident-header{
-  height:45px; flex-shrink:0;
-  background:#0f172a;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:0 15px;
-  border-radius:12px 12px 0 0;
-  font-weight:bold; font-size:14px;
-}
-.incident-close{
-  cursor:pointer; color:#ef4444; font-size:18px;
-}
-.incident-content{
-  padding:10px;
-  flex:1;
-  overflow:auto;
-  background:#1e293b;
-  border-radius:0 0 12px 12px;
-}
-.incident-table{
-  width:100%;
-  border-collapse:collapse;
-  table-layout:fixed;
-  font-size:12px;
-  background:#1e293b;
-  color:#e2e8f0;
-}
-.incident-table th{
-  background:#0f172a;
-  padding:6px 8px;
-  color:#93c5fd;
-  position:sticky; top:0;
-  text-align:center;
-  font-size:12px; font-weight:bold;
-  line-height:1.3;
-  border:1px solid #2563eb;
-  border-bottom:2px solid #2563eb;
-}
-.incident-table td{
-  padding:6px 8px;
-  border:1px solid #334155;
-  vertical-align:middle;
-  white-space:pre-line;
-  word-wrap:break-word;
-  line-height:1.4;
-  color:#e2e8f0;
-}
-.incident-table td.col-left   { text-align:left; vertical-align:top; }
-.incident-table td.col-center { text-align:center; }
-.incident-table td.col-accent { color:#f87171; text-align:center; }
-.incident-table tr:hover td   { background:#2563eb33; }
+    .incident-header {
+      height: 45px; flex-shrink: 0;
+      background: #0f172a;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 15px;
+      border-radius: 12px 12px 0 0;
+      font-weight: bold; font-size: 14px;
+    }
+    .incident-close { cursor: pointer; color: #ef4444; font-size: 18px; }
+    .incident-content {
+      padding: 10px; flex: 1; overflow: auto;
+      background: #1e293b; border-radius: 0 0 12px 12px;
+    }
 
-.badge-yes{
-  display:inline-block;
-  background:#14532d; color:#86efac;
-  padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;
-}
-.badge-no{
-  display:inline-block;
-  background:#7f1d1d; color:#fca5a5;
-  padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;
-}
+    .incident-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto;
+      font-size: 11px;
+      background: #1e293b;
+      color: #e2e8f0;
+    }
+    .incident-table th {
+      background: #0f172a;
+      padding: 6px 4px;
+      color: #93c5fd;
+      position: sticky; top: 0;
+      text-align: center;
+      font-size: 11px; font-weight: bold;
+      line-height: 1.2;
+      border: 1px solid #2563eb;
+      border-bottom: 2px solid #2563eb;
+      white-space: normal;
+      word-wrap: break-word;
+    }
+    .incident-table td {
+      padding: 5px 4px;
+      border: 1px solid #334155;
+      vertical-align: middle;
+      white-space: pre-line;
+      word-wrap: break-word;
+      line-height: 1.3;
+      color: #e2e8f0;
+    }
+    .incident-table td.col-left   { text-align: left; vertical-align: top; }
+    .incident-table td.col-center { text-align: center; }
+    .incident-table td.col-accent { color: #f87171; text-align: center; font-weight: bold; }
+    .incident-table tr:hover td   { background: #2563eb33; }
 
-.counter-item[data-incident]{ cursor:pointer; transition:.2s; }
-.counter-item[data-incident]:hover{ border-color:#2563eb; box-shadow:0 0 14px rgba(37,99,235,.5); }
-.counter-item.active-incident{ background:#24344d; border-color:#2563eb; box-shadow:0 0 20px #2563eb; }
+    .badge-yes {
+      display: inline-block; background: #14532d; color: #86efac;
+      padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600;
+    }
+    .badge-no {
+      display: inline-block; background: #7f1d1d; color: #fca5a5;
+      padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600;
+    }
 
-/* ===== ПЕРЕГЛЯД ДОКУМЕНТІВ (PDF у самому сайті) ===== */
-.doc-viewer-overlay{
-  display:none;
-  position:fixed; inset:0; z-index:1400;
-  background:rgba(0,0,0,.6);
-}
-.doc-viewer-overlay.show{ display:block; }
+    /* ===== ПЕРЕГЛЯД ДОКУМЕНТІВ (PDF) ===== */
+    .doc-viewer-overlay{
+      display:none; position:fixed; inset:0; z-index:1400;
+      background:rgba(0,0,0,.6);
+    }
+    .doc-viewer-overlay.show{ display:block; }
 
-.doc-viewer-window{
-  display:none;
-  flex-direction:column;
-  position:fixed;
-  top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  width:min(1000px, 95vw);
-  height:min(85vh, 900px);
-  background:#1e293b;
-  border:1px solid #2563eb;
-  border-radius:12px;
-  box-shadow:0 0 40px rgba(37,99,235,.6);
-  z-index:1401;
-}
-.doc-viewer-window.show{ display:flex; }
+    .doc-viewer-window{
+      display:none; flex-direction:column; position:fixed;
+      top:50%; left:50%; transform:translate(-50%,-50%);
+      width:min(1000px, 95vw); height:min(85vh, 900px);
+      background:#1e293b; border:1px solid #2563eb;
+      border-radius:12px; box-shadow:0 0 40px rgba(37,99,235,.6);
+      z-index:1401;
+    }
+    .doc-viewer-window.show{ display:flex; }
 
-.doc-viewer-header{
-  height:45px; flex-shrink:0;
-  background:#0f172a;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:0 15px;
-  border-radius:12px 12px 0 0;
-  font-weight:bold; font-size:14px;
-  color:#f1f5f9;
-}
-.doc-viewer-close{ cursor:pointer; color:#ef4444; font-size:18px; }
-.doc-viewer-body{
-  flex:1;
-  overflow:hidden;
-  border-radius:0 0 12px 12px;
-  background:#0f172a;
-}
-.doc-viewer-body iframe{
-  width:100%; height:100%; border:none; background:#fff;
-}
+    .doc-viewer-header{
+      height:45px; flex-shrink:0; background:#0f172a;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 15px; border-radius:12px 12px 0 0;
+      font-weight:bold; font-size:14px; color:#f1f5f9;
+    }
+    .doc-viewer-close{ cursor:pointer; color:#ef4444; font-size:18px; }
+    .doc-viewer-body{ flex:1; overflow:hidden; border-radius:0 0 12px 12px; background:#0f172a; }
+    .doc-viewer-body iframe{ width:100%; height:100%; border:none; background:#fff; }
 
-/* ===== ПОВНОЕКРАННА КАРТА "ЗАЛУЧЕННЯ ПІДРОЗДІЛІВ" ===== */
-.deployment-overlay{
-  display:none;
-  position:fixed; inset:0; z-index:1500;
-  background:rgba(0,0,0,.6);
-}
-.deployment-overlay.show{ display:block; }
+    /* ===== ПОВНОЕКРАННІ КАРТИ ===== */
+    .deployment-overlay{
+      display:none; position:fixed; inset:0; z-index:1500;
+      background:rgba(0,0,0,.6);
+    }
+    .deployment-overlay.show{ display:block; }
 
-.deployment-window{
-  display:none;
-  flex-direction:column;
-  position:fixed;
-  inset:0;
-  width:100%; height:100%;
-  background:#1e293b;
-  z-index:1501;
-}
-.deployment-window.show{ display:flex; }
+    .deployment-window{
+      display:none; flex-direction:column; position:fixed;
+      inset:0; width:100%; height:100%; background:#1e293b; z-index:1501;
+    }
+    .deployment-window.show{ display:flex; }
 
-.deployment-header{
-  height:52px; flex-shrink:0;
-  background:#0f172a;
-  border-bottom:2px solid #2563eb;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:0 16px;
-  font-weight:bold; font-size:14px;
-  color:#f1f5f9;
-}
-.deployment-close{ cursor:pointer; color:#ef4444; font-size:20px; }
-.deployment-body{
-  flex:1;
-  position:relative;
-  overflow:hidden;
-}
-#deployment-map{ width:100%; height:100%; }
-#elevators-map{ width:100%; height:100%; }
+    .deployment-header{
+      height:52px; flex-shrink:0; background:#0f172a;
+      border-bottom:2px solid #2563eb; display:flex; align-items:center;
+      justify-content:space-between; padding:0 16px; font-weight:bold;
+      font-size:14px; color:#f1f5f9;
+    }
+    .deployment-close{ cursor:pointer; color:#ef4444; font-size:20px; }
+    .deployment-body{ flex:1; position:relative; overflow:hidden; }
+    #deployment-map{ width:100%; height:100%; }
+    #elevators-map{ width:100%; height:100%; }
 
-/* ===== ПАНЕЛЬ "ЕЛЕВАТОРИ" (РАЙОНИ / НОМЕРИ) ===== */
-#elevators-panel{
-  position:absolute; top:10px; left:10px; z-index:1000;
-  width:250px; max-height:calc(100% - 20px);
-  background:rgba(15,23,42,0.95); border:1px solid #334155; border-radius:10px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.5);
-  display:flex; flex-direction:column; overflow:hidden;
-  font-family:'Segoe UI', Arial, sans-serif;
-}
-#elevatorsPanelHeader{
-  padding:10px 12px 8px; border-bottom:1px solid #334155; background:#1e293b; flex-shrink:0;
-}
-#elevatorsPanelHeader h3{
-  margin:0; font-size:13px; font-weight:700; color:#eab308; letter-spacing:.03em;
-}
-#elevatorsPanelSub{ font-size:10px; color:#64748b; margin-top:2px; }
-#elevatorsResetBtn{
-  margin-top:6px; font-size:11px; background:#0f172a; border:1px solid #334155; border-radius:6px;
-  padding:4px 8px; color:#cbd5e1; cursor:pointer;
-}
-#elevatorsResetBtn:hover{ background:#2563eb; border-color:#2563eb; color:#fff; }
+    /* ===== ПАНЕЛЬ "ЕЛЕВАТОРИ" ===== */
+    #elevators-panel{
+      position:absolute; top:10px; left:10px; z-index:1000;
+      width:250px; max-height:calc(100% - 20px);
+      background:rgba(15,23,42,0.95); border:1px solid #334155; border-radius:10px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.5); display:flex; flex-direction:column;
+      overflow:hidden; font-family:'Segoe UI', Arial, sans-serif;
+    }
+    #elevatorsPanelHeader{ padding:10px 12px 8px; border-bottom:1px solid #334155; background:#1e293b; flex-shrink:0; }
+    #elevatorsPanelHeader h3{ margin:0; font-size:13px; font-weight:700; color:#eab308; letter-spacing:.03em; }
+    #elevatorsPanelSub{ font-size:10px; color:#64748b; margin-top:2px; }
+    #elevatorsResetBtn{
+      margin-top:6px; font-size:11px; background:#0f172a; border:1px solid #334155; border-radius:6px;
+      padding:4px 8px; color:#cbd5e1; cursor:pointer;
+    }
+    #elevatorsResetBtn:hover{ background:#2563eb; border-color:#2563eb; color:#fff; }
 
-#elevatorsDistrictList{ overflow-y:auto; padding:4px 6px 8px; }
-.elevator-district{ border-bottom:1px solid #1e293b; }
-.elevator-district:last-child{ border-bottom:none; }
-.elevator-district-title{
-  width:100%; text-align:left; background:none; border:none;
-  padding:8px 6px; font-size:12px; font-weight:600; color:#e2e8f0;
-  cursor:pointer; display:flex; justify-content:space-between; align-items:center;
-}
-.elevator-district-title:hover{ color:#38bdf8; }
-.elevator-district-title .count{ font-weight:400; font-size:10px; color:#64748b; }
-.elevator-district-title .arrow{ transition:transform .15s ease; display:inline-block; margin-left:4px; }
-.elevator-district.open .elevator-district-title .arrow{ transform:rotate(90deg); }
+    #elevatorsDistrictList{ overflow-y:auto; padding:4px 6px 8px; }
+    .elevator-district{ border-bottom:1px solid #1e293b; }
+    .elevator-district:last-child{ border-bottom:none; }
+    .elevator-district-title{
+      width:100%; text-align:left; background:none; border:none;
+      padding:8px 6px; font-size:12px; font-weight:600; color:#e2e8f0;
+      cursor:pointer; display:flex; justify-content:space-between; align-items:center;
+    }
+    .elevator-district-title:hover{ color:#38bdf8; }
+    .elevator-district-title .count{ font-weight:400; font-size:10px; color:#64748b; }
+    .elevator-district-title .arrow{ transition:transform .15s ease; display:inline-block; margin-left:4px; }
+    .elevator-district.open .elevator-district-title .arrow{ transform:rotate(90deg); }
 
-.elevator-numbers{
-  display:none; flex-direction:column; gap:5px; padding:2px 6px 10px;
-}
-.elevator-district.open .elevator-numbers{ display:flex; }
+    .elevator-numbers{ display:none; flex-direction:column; gap:5px; padding:2px 6px 10px; }
+    .elevator-district.open .elevator-numbers{ display:flex; }
 
-.elevator-chip{
-  min-width:26px; max-width:100%; text-align:left; padding:4px 8px; font-size:11px;
-  line-height:1.35; border-radius:5px; background:#0f172a; border:1px solid #334155; color:#cbd5e1;
-  cursor:pointer; user-select:none; word-break:break-word;
-}
-.elevator-chip:hover{ border-color:#eab308; }
-.elevator-chip.active{ background:#eab308; border-color:#eab308; color:#1e293b; font-weight:700; }
+    .elevator-chip{
+      min-width:26px; max-width:100%; text-align:left; padding:4px 8px; font-size:11px;
+      line-height:1.35; border-radius:5px; background:#0f172a; border:1px solid #334155; color:#cbd5e1;
+      cursor:pointer; user-select:none; word-break:break-word;
+    }
+    .elevator-chip:hover{ border-color:#eab308; }
+    .elevator-chip.active{ background:#eab308; border-color:#eab308; color:#1e293b; font-weight:700; }
 
-#elevatorsEmptyNote{ padding:8px 12px; font-size:11px; color:#94a3b8; }
+    #elevatorsEmptyNote{ padding:8px 12px; font-size:11px; color:#94a3b8; }
 
-/* ===== ПАНЕЛЬ ДЕТАЛЕЙ ЕЛЕВАТОРА (замінює маленький popup) ===== */
-.elevator-detail-overlay{
-  display:none; position:fixed; inset:0; z-index:2000;
-  background:rgba(0,0,0,.5);
-}
-.elevator-detail-overlay.show{ display:block; }
-.elevator-detail-panel{
-  display:flex; flex-direction:column;
-  position:fixed; top:0; right:0; height:100%;
-  width:50vw; max-width:640px; min-width:320px;
-  background:#1e293b; border-left:2px solid #2563eb;
-  box-shadow:-8px 0 30px rgba(0,0,0,.6);
-  z-index:2001;
-  transform:translateX(100%);
-  transition:transform .28s ease;
-  overflow:hidden;
-}
-.elevator-detail-panel.show{ transform:translateX(0); }
-@media (max-width:800px){
-  .elevator-detail-panel{ width:100vw; max-width:none; }
-}
-.elevator-detail-header{
-  flex-shrink:0; height:52px;
-  background:#0f172a; border-bottom:2px solid #2563eb;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:0 16px; font-weight:700; font-size:14px; color:#f1f5f9;
-}
-.elevator-detail-close{ cursor:pointer; color:#ef4444; font-size:20px; }
-.elevator-detail-body{ flex:1; overflow-y:auto; padding:18px 20px; }
-.elevator-detail-body .info-text{ font-size:14px; line-height:1.7; color:#e2e8f0; }
-.elevator-detail-body .info-text b{ color:#93c5fd; }
-.photo-toggle{
-  margin-top:18px; width:100%; display:flex; align-items:center; justify-content:space-between;
-  background:#0f172a; border:1px solid #334155; border-radius:8px;
-  padding:10px 14px; cursor:pointer; color:#f1f5f9; font-size:13px; font-weight:600;
-}
-.photo-toggle:hover{ border-color:#2563eb; }
-.photo-toggle .arrow{ transition:transform .2s; }
-.photo-toggle.open .arrow{ transform:rotate(180deg); }
-.photo-categories{ display:none; gap:10px; margin-top:10px; }
-.photo-categories.open{ display:flex; }
-.photo-cat-btn{
-  flex:1; text-align:center; background:#0f172a; border:1px solid #334155; border-radius:8px;
-  padding:14px 10px; cursor:pointer; color:#cbd5e1; font-size:13px; font-weight:700;
-}
-.photo-cat-btn .cat-count{ display:block; font-size:11px; font-weight:400; color:#64748b; margin-top:3px; }
-.photo-cat-btn:hover{ border-color:#eab308; color:#eab308; }
-.photo-cat-btn.disabled{ opacity:.4; cursor:default; pointer-events:none; }
-/* ===== ГАЛЕРЕЯ ФОТО (лайтбокс з перегортанням) ===== */
-.photo-gallery-overlay{
-  display:none; position:fixed; inset:0; z-index:2100;
-  background:rgba(0,0,0,.85);
-  align-items:center; justify-content:center;
-}
-.photo-gallery-overlay.show{ display:flex; }
-.photo-gallery-close{
-  position:absolute; top:16px; right:20px; font-size:26px; color:#fff;
-  cursor:pointer; z-index:2102;
-}
-.photo-gallery-counter{
-  position:absolute; top:20px; left:20px; color:#cbd5e1; font-size:13px; z-index:2102;
-}
-.photo-gallery-img-wrap{
-  max-width:90vw; max-height:85vh; display:flex; align-items:center; justify-content:center;
-}
-.photo-gallery-img-wrap img{
-  max-width:90vw; max-height:85vh; object-fit:contain; border-radius:6px;
-  box-shadow:0 8px 40px rgba(0,0,0,.7);
-}
-.photo-gallery-nav{
-  position:absolute; top:50%; transform:translateY(-50%);
-  width:52px; height:52px; border-radius:50%;
-  background:rgba(30,41,59,.85); border:1px solid #334155;
-  color:#fff; font-size:22px; display:flex; align-items:center; justify-content:center;
-  cursor:pointer; z-index:2102; user-select:none;
-}
-.photo-gallery-nav:hover{ background:#2563eb; }
-.photo-gallery-nav.prev{ left:16px; }
-.photo-gallery-nav.next{ right:16px; }
+    /* ===== ПАНЕЛЬ ДЕТАЛЕЙ ЕЛЕВАТОРА ===== */
+    .elevator-detail-overlay{ display:none; position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,.5); }
+    .elevator-detail-overlay.show{ display:block; }
+    .elevator-detail-panel{
+      display:flex; flex-direction:column; position:fixed; top:0; right:0; height:100%;
+      width:50vw; max-width:640px; min-width:320px; background:#1e293b; border-left:2px solid #2563eb;
+      box-shadow:-8px 0 30px rgba(0,0,0,.6); z-index:2001; transform:translateX(100%);
+      transition:transform .28s ease; overflow:hidden;
+    }
+    .elevator-detail-panel.show{ transform:translateX(0); }
+    @media (max-width:800px){ .elevator-detail-panel{ width:100vw; max-width:none; } }
+    .elevator-detail-header{
+      flex-shrink:0; height:52px; background:#0f172a; border-bottom:2px solid #2563eb;
+      display:flex; align-items:center; justify-content:space-between; padding:0 16px;
+      font-weight:700; font-size:14px; color:#f1f5f9;
+    }
+    .elevator-detail-close{ cursor:pointer; color:#ef4444; font-size:20px; }
+    .elevator-detail-body{ flex:1; overflow-y:auto; padding:18px 20px; }
+    .elevator-detail-body .info-text{ font-size:14px; line-height:1.7; color:#e2e8f0; }
+    .elevator-detail-body .info-text b{ color:#93c5fd; }
+    .photo-toggle{
+      margin-top:18px; width:100%; display:flex; align-items:center; justify-content:space-between;
+      background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px 14px;
+      cursor:pointer; color:#f1f5f9; font-size:13px; font-weight:600;
+    }
+    .photo-toggle:hover{ border-color:#2563eb; }
+    .photo-toggle .arrow{ transition:transform .2s; }
+    .photo-toggle.open .arrow{ transform:rotate(180deg); }
+    .photo-categories{ display:none; gap:10px; margin-top:10px; }
+    .photo-categories.open{ display:flex; }
+    .photo-cat-btn{
+      flex:1; text-align:center; background:#0f172a; border:1px solid #334155; border-radius:8px;
+      padding:14px 10px; cursor:pointer; color:#cbd5e1; font-size:13px; font-weight:700;
+    }
+    .photo-cat-btn .cat-count{ display:block; font-size:11px; font-weight:400; color:#64748b; margin-top:3px; }
+    .photo-cat-btn:hover{ border-color:#eab308; color:#eab308; }
+    .photo-cat-btn.disabled{ opacity:.4; cursor:default; pointer-events:none; }
 
-/* ===== КНОПКА "ШИРОКОФОРМАТНИЙ РЕЖИМ" ===== */
-.widescreen-btn{
-  position:fixed; bottom:14px; right:14px; z-index:1250;
-  display:flex; align-items:center; gap:6px;
-  background:#1e293b; border:1px solid #334155; border-radius:8px;
-  color:#e2e8f0; text-decoration:none; font-size:13px; font-weight:600;
-  padding:9px 14px; cursor:pointer;
-  box-shadow:0 2px 8px rgba(0,0,0,0.4);
-  transition:background .2s, border-color .2s, transform .15s;
-}
-.widescreen-btn:hover{ background:#2563eb; border-color:#2563eb; transform:translateY(-1px); }
-.widescreen-btn.active-widescreen{ background:#2563eb; border-color:#2563eb; }
-.widescreen-btn .ws-icon{ font-size:15px; line-height:1; }
+    /* ===== ГАЛЕРЕЯ ФОТО ===== */
+    .photo-gallery-overlay{
+      display:none; position:fixed; inset:0; z-index:2100; background:rgba(0,0,0,.85);
+      align-items:center; justify-content:center;
+    }
+    .photo-gallery-overlay.show{ display:flex; }
+    .photo-gallery-close{ position:absolute; top:16px; right:20px; font-size:26px; color:#fff; cursor:pointer; z-index:2102; }
+    .photo-gallery-counter{ position:absolute; top:20px; left:20px; color:#cbd5e1; font-size:13px; z-index:2102; }
+    .photo-gallery-img-wrap{ max-width:90vw; max-height:85vh; display:flex; align-items:center; justify-content:center; }
+    .photo-gallery-img-wrap img{ max-width:90vw; max-height:85vh; object-fit:contain; border-radius:6px; box-shadow:0 8px 40px rgba(0,0,0,.7); }
+    .photo-gallery-nav{
+      position:absolute; top:50%; transform:translateY(-50%); width:52px; height:52px; border-radius:50%;
+      background:rgba(30,41,59,.85); border:1px solid #334155; color:#fff; font-size:22px; display:flex;
+      align-items:center; justify-content:center; cursor:pointer; z-index:2102; user-select:none;
+    }
+    .photo-gallery-nav:hover{ background:#2563eb; }
+    .photo-gallery-nav.prev{ left:16px; }
+    .photo-gallery-nav.next{ right:16px; }
 
-/* Справжній повноекранний режим (аналог F11) через Fullscreen API.
-   Тепер у fullscreen переходить весь документ (<html>), а не окремий блок.
-   Це потрібно тому, що спливаючі вікна (інциденти, документи, карта
-   залучення підрозділів, елеватори, панель деталей, галерея фото) лежать
-   у DOM ПОЗА блоками #page-operational / .deployment-window — і якби
-   fullscreen робився лише для цих блоків, браузер показував би тільки їх,
-   а всі попапи та кнопки над ними ставали б невидимими й нефункціональними. */
-html:fullscreen,
-html:-webkit-full-screen,
-html:-ms-fullscreen,
-html:-moz-full-screen{
-  background:#0f172a;
-}
+    /* ===== КНОПКА "ШИРОКОФОРМАТНИЙ РЕЖИМ" ===== */
+    .widescreen-btn{
+      position:fixed; bottom:14px; right:14px; z-index:1250;
+      display:flex; align-items:center; gap:6px;
+      background:#1e293b; border:1px solid #334155; border-radius:8px;
+      color:#e2e8f0; text-decoration:none; font-size:13px; font-weight:600;
+      padding:9px 14px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.4);
+      transition:background .2s, border-color .2s, transform .15s;
+    }
+    .widescreen-btn:hover{ background:#2563eb; border-color:#2563eb; transform:translateY(-1px); }
+    .widescreen-btn.active-widescreen{ background:#2563eb; border-color:#2563eb; }
+    .widescreen-btn .ws-icon{ font-size:15px; line-height:1; }
 
-#page-operational.is-fullscreen-target{
-  background:#0f172a;
-  overflow-y:auto;
-  padding-top:10px;
-  width:100%;
-  min-height:100%;
-}
-.deployment-window.is-fullscreen-target{
-  background:#1e293b;
-  width:100%;
-  height:100%;
-}
+    html:fullscreen, html:-webkit-full-screen, html:-ms-fullscreen, html:-moz-full-screen { background:#0f172a; }
+    #page-operational.is-fullscreen-target { background:#0f172a; overflow-y:auto; padding-top:10px; width:100%; min-height:100%; }
+    .deployment-window.is-fullscreen-target { background:#1e293b; width:100%; height:100%; }
+  </style>
 
-</style>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -669,219 +555,214 @@ html:-moz-full-screen{
 <!-- ===== СТОРІНКА "ОПЕРАТИВНА ІНФОРМАЦІЯ" ===== -->
 <section id="page-operational">
 
-<!-- НА ГОЛОВНУ -->
-<a href="#" class="back-home-btn" onclick="goHome(); return false;">← На головну</a>
+  <a href="#" class="back-home-btn" onclick="goHome(); return false;">← На головну</a>
 
-<!-- ОНОВЛЕННЯ ДАНИХ -->
-<button onclick="manualRefresh(this)" id="refreshBtn" class="refresh-btn">
-  <span class="refresh-icon">⟳</span><span class="refresh-text">Оновити дані</span>
-</button>
+  <button onclick="manualRefresh(this)" id="refreshBtn" class="refresh-btn">
+    <span class="refresh-icon">⟳</span><span class="refresh-text">Оновити дані</span>
+  </button>
 
-<!-- ШИРОКОФОРМАТНИЙ РЕЖИМ -->
-<button onclick="toggleFullscreenMode('page-operational', this)" id="operationalWidescreenBtn" class="widescreen-btn">
-  <span class="ws-icon">⛶</span><span class="ws-text">Широкий формат</span>
-</button>
+  <button onclick="toggleFullscreenMode('page-operational', this)" id="operationalWidescreenBtn" class="widescreen-btn">
+    <span class="ws-icon">⛶</span><span class="ws-text">Широкий формат</span>
+  </button>
 
-<div class="dashboard-wrapper">
+  <div class="dashboard-wrapper">
 
-  <header class="main-header">
-    <div class="header-logo-title">
-      <img src="dsns-emblem.jpg" alt="ДСНС" class="header-mini-logo" onerror="this.style.display='none'">
-      <div>
-        <h1>ОПЕРАТИВНА ІНФОРМАЦІЯ ЗА ДОБУ</h1>
-        <p class="header-subtitle">ГУ ДСНС України у Сумській області</p>
-      </div>
-    </div>
-    <div class="header-meta" style="display:flex;align-items:center;gap:10px;">
-      <span class="date-badge" id="dashboardClock">Завантаження...</span>
-      <button class="pdf-btn" onclick="saveOperationalPDF()">📄 PDF</button>
-    </div>
-  </header>
-
-  <section class="top-counters-bar">
-    <div class="counter-item fire-alert" data-incident="fires" onclick="openIncidentWindow('fires', this)">
-      <span class="counter-label">🔥 Пожежі</span>
-      <span class="counter-value" data-cell="C4">—</span>
-    </div>
-    <div class="counter-item accident-alert" data-incident="emergencies" onclick="openIncidentWindow('emergencies', this, 'ДТП')">
-      <span class="counter-label">🚗 ДТП</span>
-      <span class="counter-value" data-cell="C8">—</span>
-    </div>
-    <div class="counter-item bomb-alert" data-incident="vnp" onclick="openIncidentWindow('vnp', this)">
-      <span class="counter-label">💣 ВНП</span>
-      <span class="counter-value" data-cell="C12">—</span>
-    </div>
-    <div class="counter-item shelling-alert" data-incident="shelling" onclick="openIncidentWindow('shelling', this)">
-      <span class="counter-label">🚀 Обстріли</span>
-      <span class="counter-value" data-cell="G6">—</span>
-    </div>
-    <div class="counter-item water-alert" data-incident="emergencies" onclick="openIncidentWindow('emergencies', this, 'НП на воді')">
-      <span class="counter-label">🌊 Вода</span>
-      <span class="counter-value" data-cell="C16">—</span>
-    </div>
-    <div class="counter-item other-alert" data-incident="emergencies" onclick="openIncidentWindow('emergencies', this, 'Інше')">
-      <span class="counter-label">⚠️ Інші</span>
-      <span class="counter-value" data-cell="C20">—</span>
-    </div>
-  </section>
-
-  <main class="dashboard-grid">
-
-    <!-- КОЛОНКА 1 -->
-    <div class="grid-column">
-      <div class="info-block blue-top">
-        <h2>🗺️ ОПЕРАТИВНА МАПА</h2>
-        <div style="position:relative;">
-          <div id="open-dsns-map"></div>
-          <div class="map-statusbar">
-            <div class="dot-status loading" id="map-status-dot"></div>
-            <span id="map-status-text">Завантаження…</span>
-          </div>
-          <div class="map-legend" id="map-legend" style="display:none">
-            <div class="map-legend-title">Шари</div>
-            <div id="map-legend-items"></div>
-          </div>
+    <header class="main-header">
+      <div class="header-logo-title">
+        <img src="dsns-emblem.jpg" alt="ДСНС" class="header-mini-logo" onerror="this.style.display='none'">
+        <div>
+          <h1>ОПЕРАТИВНА ІНФОРМАЦІЯ ЗА ДОБУ</h1>
+          <p class="header-subtitle">ГУ ДСНС України у Сумській області</p>
         </div>
       </div>
+      <div class="header-meta" style="display:flex;align-items:center;gap:10px;">
+        <span class="date-badge" id="dashboardClock">Завантаження...</span>
+        <button class="pdf-btn" onclick="saveOperationalPDF()">📄 PDF</button>
+      </div>
+    </header>
 
-      <div class="info-block">
-        <button class="accordion-toggle" onclick="toggleAccordion(this)">
-          ⛺ Пункти незламності та обігріву <span class="arrow">▼</span>
-        </button>
-        <div class="accordion-body padding-box">
-          <div class="points-list">
-            <p><strong>Пункти незламності:</strong><br>
-              Всього – 429, з них: Сумський р-н – 106, Конотопський р-н – 73, Охтирський р-н – 47, Роменський р-н – 29, Шосткинський р-н – 174.</p>
-            <hr class="dashed-line">
-            <p><strong>Пункти обігріву:</strong><br>
-              Всього – 512, з них: Сумський р-н – 105, Конотопський р-н – 148, Охтирський р-н – 64, Роменський р-н – 88, Шосткинський р-н – 107.</p>
+    <!-- БАР КНОПОК-ЛІЧИЛЬНИКІВ -->
+    <section class="top-counters-bar">
+      <div class="counter-item fire-alert" data-incident="fires" onclick="openIncidentWindow('fires', this)">
+        <span class="counter-label">🔥 Пожежі</span>
+        <span class="counter-value" data-cell="C4">—</span>
+      </div>
+      <div class="counter-item accident-alert" data-incident="dtp" onclick="openIncidentWindow('dtp', this)">
+        <span class="counter-label">🚗 ДТП</span>
+        <span class="counter-value" data-cell="C8">—</span>
+      </div>
+      <div class="counter-item bomb-alert" data-incident="vnp" onclick="openIncidentWindow('vnp', this)">
+        <span class="counter-label">💣 ВНП</span>
+        <span class="counter-value" data-cell="C12">—</span>
+      </div>
+      <div class="counter-item shelling-alert" data-incident="shelling" onclick="openIncidentWindow('shelling', this)">
+        <span class="counter-label">🚀 Обстріли</span>
+        <span class="counter-value" data-cell="G6">—</span>
+      </div>
+      <div class="counter-item water-alert" data-incident="water" onclick="openIncidentWindow('water', this)">
+        <span class="counter-label">🌊 Вода</span>
+        <span class="counter-value" data-cell="C16">—</span>
+      </div>
+      <div class="counter-item other-alert" data-incident="other" onclick="openIncidentWindow('other', this)">
+        <span class="counter-label">⚠️ Інші</span>
+        <span class="counter-value" data-cell="C20">—</span>
+      </div>
+    </section>
+
+    <main class="dashboard-grid">
+
+      <!-- КОЛОНКА 1 -->
+      <div class="grid-column">
+        <div class="info-block blue-top">
+          <h2>🗺️ ОПЕРАТИВНА МАПА</h2>
+          <div style="position:relative;">
+            <div id="open-dsns-map"></div>
+            <div class="map-statusbar">
+              <div class="dot-status loading" id="map-status-dot"></div>
+              <span id="map-status-text">Завантаження…</span>
+            </div>
+            <div class="map-legend" id="map-legend" style="display:none">
+              <div class="map-legend-title">Шари</div>
+              <div id="map-legend-items"></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="info-block">
-        <button class="accordion-toggle" onclick="toggleAccordion(this)">
-          👨‍🚒 Втрати ДСНС внаслідок бойових дій <span class="arrow">▼</span>
-        </button>
-        <div class="accordion-body padding-box">
-          <div class="points-list">
-            <p><strong>Загинуло:</strong><br>
-               </p>
-            <hr class="dashed-line">
-            <p><strong>Травмовано:</strong><br>
-             </p>
-            <hr class="dashed-line">
+        <div class="info-block">
+          <button class="accordion-toggle" onclick="toggleAccordion(this)">
+            ⛺ Пункти незламності та обігріву <span class="arrow">▼</span>
+          </button>
+          <div class="accordion-body padding-box">
+            <div class="points-list">
+              <p><strong>Пункти незламності:</strong><br>
+                Всього – 429, з них: Сумський р-н – 106, Конотопський р-н – 73, Охтирський р-н – 47, Роменський р-н – 29, Шосткинський р-н – 174.</p>
+              <hr class="dashed-line">
+              <p><strong>Пункти обігріву:</strong><br>
+                Всього – 512, з них: Сумський р-н – 105, Конотопський р-н – 148, Охтирський р-н – 64, Роменський р-н – 88, Шосткинський р-н – 107.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-block">
+          <button class="accordion-toggle" onclick="toggleAccordion(this)">
+            👨‍🚒 Втрати ДСНС внаслідок бойових дій <span class="arrow">▼</span>
+          </button>
+          <div class="accordion-body padding-box">
+            <div class="points-list">
+              <p><strong>Загинуло:</strong><br></p>
+              <hr class="dashed-line">
+              <p><strong>Травмовано:</strong><br></p>
+              <hr class="dashed-line">
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
+      <!-- КОЛОНКА 2 -->
+      <div class="grid-column">
+        <div class="info-block dark-top">
+          <h2>📊 Події за напрямками <span id="sync-status"></span></h2>
+          <div class="table-responsive-wrapper">
+            <table class="report-table">
+              <thead>
+                <tr><th>Подій</th><th class="center">Доба</th><th class="center">Рік</th></tr>
+              </thead>
+              <tbody>
+                <tr class="highlight-row"><td>Пожеж 🔥</td><td class="center bold alert-text" data-cell="C4">—</td><td class="center bold" data-cell="D4">—</td></tr>
+                <tr><td class="indent-cell">Загиблі</td><td class="center" data-cell="C5">—</td><td class="center" data-cell="D5">—</td></tr>
+                <tr><td class="indent-cell">Травмовані</td><td class="center" data-cell="C6">—</td><td class="center" data-cell="D6">—</td></tr>
+                <tr><td class="indent-cell">Врятовані</td><td class="center" data-cell="C7">—</td><td class="center" data-cell="D7">—</td></tr>
+                <tr class="highlight-row"><td>ДТП 🚗</td><td class="center bold text-orange" data-cell="C8">—</td><td class="center bold" data-cell="D8">—</td></tr>
+                <tr><td class="indent-cell">Загиблі</td><td class="center" data-cell="C9">—</td><td class="center" data-cell="D9">—</td></tr>
+                <tr><td class="indent-cell">Травмовані</td><td class="center" data-cell="C10">—</td><td class="center" data-cell="D10">—</td></tr>
+                <tr><td class="indent-cell">Врятовані</td><td class="center" data-cell="C11">—</td><td class="center" data-cell="D11">—</td></tr>
+                <tr class="highlight-row"><td>ВНП 💣</td><td class="center bold text-yellow" data-cell="C12">—</td><td class="center bold" data-cell="D12">—</td></tr>
+                <tr><td class="indent-cell">Виявлено</td><td class="center" data-cell="C13">—</td><td class="center" data-cell="D13">—</td></tr>
+                <tr><td class="indent-cell">Знищено</td><td class="center" data-cell="C14">—</td><td class="center" data-cell="D14">—</td></tr>
+                <tr><td class="indent-cell">Одиниці</td><td class="center" data-cell="C15">—</td><td class="center" data-cell="D15">—</td></tr>
+                <tr class="highlight-row"><td>НП на воді 🌊</td><td class="center bold text-blue" data-cell="C16">—</td><td class="center bold" data-cell="D16">—</td></tr>
+                <tr><td class="indent-cell">Загиблі</td><td class="center" data-cell="C17">—</td><td class="center" data-cell="D17">—</td></tr>
+                <tr><td class="indent-cell">Травмовані</td><td class="center" data-cell="C18">—</td><td class="center" data-cell="D18">—</td></tr>
+                <tr><td class="indent-cell">Врятовані</td><td class="center" data-cell="C19">—</td><td class="center" data-cell="D19">—</td></tr>
+                <tr class="highlight-row"><td>Інші НП ⚠️</td><td class="center bold" data-cell="C20">—</td><td class="center bold" data-cell="D20">—</td></tr>
+                <tr><td class="indent-cell">Загиблі</td><td class="center" data-cell="C21">—</td><td class="center" data-cell="D21">—</td></tr>
+                <tr><td class="indent-cell">Травмовані</td><td class="center" data-cell="C22">—</td><td class="center" data-cell="D22">—</td></tr>
+                <tr class="highlight-row"><td class="bold">Врятовані (інші НП)</td><td class="center bold" data-cell="C23">—</td><td class="center bold" data-cell="D23">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-    <!-- КОЛОНКА 2 -->
-    <div class="grid-column">
-      <div class="info-block dark-top">
-        <h2>📊 Події за напрямками <span id="sync-status"></span></h2>
-        <div class="table-responsive-wrapper">
-          <table class="report-table">
-            <thead>
-              <tr><th>Подій</th><th class="center">Доба</th><th class="center">Рік</th></tr>
-            </thead>
-            <tbody>
-              <tr class="highlight-row"><td>Пожеж 🔥</td><td class="center bold alert-text" data-cell="C4">—</td><td class="center bold" data-cell="D4">—</td></tr>
-              <tr><td class="indent-cell">Загиблі</td><td class="center" data-cell="C5">—</td><td class="center" data-cell="D5">—</td></tr>
-              <tr><td class="indent-cell">Травмовані</td><td class="center" data-cell="C6">—</td><td class="center" data-cell="D6">—</td></tr>
-              <tr><td class="indent-cell">Врятовані</td><td class="center" data-cell="C7">—</td><td class="center" data-cell="D7">—</td></tr>
-              <tr class="highlight-row"><td>ДТП 🚗</td><td class="center bold text-orange" data-cell="C8">—</td><td class="center bold" data-cell="D8">—</td></tr>
-              <tr><td class="indent-cell">Загиблі</td><td class="center" data-cell="C9">—</td><td class="center" data-cell="D9">—</td></tr>
-              <tr><td class="indent-cell">Травмовані</td><td class="center" data-cell="C10">—</td><td class="center" data-cell="D10">—</td></tr>
-              <tr><td class="indent-cell">Врятовані</td><td class="center" data-cell="C11">—</td><td class="center" data-cell="D11">—</td></tr>
-              <tr class="highlight-row"><td>ВНП 💣</td><td class="center bold text-yellow" data-cell="C12">—</td><td class="center bold" data-cell="D12">—</td></tr>
-              <tr><td class="indent-cell">Виявлено</td><td class="center" data-cell="C13">—</td><td class="center" data-cell="D13">—</td></tr>
-              <tr><td class="indent-cell">Знищено</td><td class="center" data-cell="C14">—</td><td class="center" data-cell="D14">—</td></tr>
-              <tr><td class="indent-cell">Одиниці</td><td class="center" data-cell="C15">—</td><td class="center" data-cell="D15">—</td></tr>
-              <tr class="highlight-row"><td>НП на воді 🌊</td><td class="center bold text-blue" data-cell="C16">—</td><td class="center bold" data-cell="D16">—</td></tr>
-              <tr><td class="indent-cell">Загиблі</td><td class="center" data-cell="C17">—</td><td class="center" data-cell="D17">—</td></tr>
-              <tr><td class="indent-cell">Травмовані</td><td class="center" data-cell="C18">—</td><td class="center" data-cell="D18">—</td></tr>
-              <tr><td class="indent-cell">Врятовані</td><td class="center" data-cell="C19">—</td><td class="center" data-cell="D19">—</td></tr>
-              <tr class="highlight-row"><td>Інші НП ⚠️</td><td class="center bold" data-cell="C20">—</td><td class="center bold" data-cell="D20">—</td></tr>
-              <tr><td class="indent-cell">Загиблі</td><td class="center" data-cell="C21">—</td><td class="center" data-cell="D21">—</td></tr>
-              <tr><td class="indent-cell">Травмовані</td><td class="center" data-cell="C22">—</td><td class="center" data-cell="D22">—</td></tr>
-              <tr class="highlight-row"><td>Врятовані (інші НП)</td><td class="center bold" data-cell="C23">—</td><td class="center bold" data-cell="D23">—</td></tr>
-            </tbody>
-          </table>
+        <div class="info-block dark-top">
+          <h2>🌱 Пожежі в екосистемах</h2>
+          <div class="table-responsive-wrapper">
+            <table class="report-table">
+              <thead>
+                <tr><th>Період</th><th class="center text-xs">Відкриті</th><th class="center text-xs">Ліс</th></tr>
+              </thead>
+              <tbody>
+                <tr class="highlight-row"><td>За добу</td><td class="center bold" data-cell="L14">—</td><td class="center bold" data-cell="M14">—</td></tr>
+                <tr><td class="bold">площа, га</td><td class="center" data-cell="L15">—</td><td class="center" data-cell="M15">—</td></tr>
+                <tr class="highlight-row"><td>З початку року</td><td class="center bold" data-cell="L16">—</td><td class="center bold" data-cell="M16">—</td></tr>
+                <tr><td class="bold">площа, га</td><td class="center" data-cell="L17">—</td><td class="center" data-cell="M17">—</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <div class="info-block dark-top">
-        <h2>🌱 Пожежі в екосистемах</h2>
-        <div class="table-responsive-wrapper">
-          <table class="report-table">
-            <thead>
-              <tr><th>Період</th><th class="center text-xs">Відкриті</th><th class="center text-xs">Ліс</th></tr>
-            </thead>
-            <tbody>
-              <tr class="highlight-row"><td>За добу</td><td class="center bold" data-cell="L14">—</td><td class="center bold" data-cell="M14">—</td></tr>
-              <tr><td class="bold">площа, га</td><td class="center" data-cell="L15">—</td><td class="center" data-cell="M15">—</td></tr>
-              <tr class="highlight-row"><td>З початку року</td><td class="center bold" data-cell="L16">—</td><td class="center bold" data-cell="M16">—</td></tr>
-              <tr><td class="bold">площа, га</td><td class="center" data-cell="L17">—</td><td class="center" data-cell="M17">—</td></tr>
-            </tbody>
-          </table>
+      <!-- КОЛОНКА 3 -->
+      <div class="grid-column">
+        <div class="info-block blue-top">
+          <h2>⚡ Електропостачання</h2>
+          <div class="table-responsive-wrapper">
+            <table class="report-table">
+              <thead>
+                <tr><th>Причина</th><th class="center text-xs">Повністю</th><th class="center text-xs">Частково</th><th class="center text-xs">Абон.</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="bold text-orange">Погодні умови</td><td class="center bold" data-cell="L8">—</td><td class="center bold" data-cell="M8">—</td><td class="center bold alert-text" data-cell="N8">—</td></tr>
+                <tr><td class="bold text-orange">Бойові дії</td><td class="center bold" data-cell="L9">—</td><td class="center bold" data-cell="M9">—</td><td class="center bold alert-text" data-cell="N9">—</td></tr>
+                <tr class="highlight-row"><td class="bold text-orange">Всього</td><td class="center bold" data-cell="L10">—</td><td class="center bold" data-cell="M10">—</td><td class="center bold alert-text" data-cell="N10">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="info-block dark-top">
+          <h2>🚀 Наслідки бойових дій</h2>
+          <div class="table-responsive-wrapper">
+            <table class="report-table">
+              <thead>
+                <tr><th>Подій</th><th class="center text-xs">Доба</th><th class="center text-xs">2026</th><th class="center text-xs">Всього</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="bold">Пожежі (бойові дії)</td><td class="center bold" data-cell="G4">—</td><td class="center" data-cell="H4">—</td><td class="center" data-cell="I4">—</td></tr>
+                <tr><td class="bold">Пожежі із залученням</td><td class="center bold" data-cell="G5">—</td><td class="center" data-cell="H5">—</td><td class="center" data-cell="I5">—</td></tr>
+                <tr class="thick-row border-double"><td class="bold">Обстріли</td><td class="center bold" data-cell="G6">—</td><td class="center" data-cell="H6">—</td><td class="center" data-cell="I6">—</td></tr>
+                <tr><td class="indent-cell">пошкоджено будівлі</td><td class="center bold" data-cell="G7">—</td><td class="center" data-cell="H7">—</td><td class="center" data-cell="I7">—</td></tr>
+                <tr><td class="indent-cell">пошкоджено техніку</td><td class="center bold" data-cell="G8">—</td><td class="center" data-cell="H8">—</td><td class="center" data-cell="I8">—</td></tr>
+                <tr><td class="indent-cell">врятовані</td><td class="center bold" data-cell="G9">—</td><td class="center" data-cell="H9">—</td><td class="center" data-cell="I9">—</td></tr>
+                <tr><td class="indent-cell">з них дітей</td><td class="center bold" data-cell="G10">—</td><td class="center" data-cell="H10">—</td><td class="center" data-cell="I10">—</td></tr>
+                <tr><td class="indent-cell">загиблі</td><td class="center bold" data-cell="G11">—</td><td class="center" data-cell="H11">—</td><td class="center" data-cell="I11">—</td></tr>
+                <tr><td class="indent-cell">з них дітей</td><td class="center bold" data-cell="G12">—</td><td class="center" data-cell="H12">—</td><td class="center" data-cell="I12">—</td></tr>
+                <tr><td class="indent-cell">травмовані</td><td class="center bold" data-cell="G13">—</td><td class="center" data-cell="H13">—</td><td class="center" data-cell="I13">—</td></tr>
+                <tr><td class="indent-cell">з них дітей</td><td class="center bold" data-cell="G14">—</td><td class="center" data-cell="H14">—</td><td class="center" data-cell="I14">—</td></tr>
+                <tr class="highlight-row"><td class="bold">АРР</td><td class="center bold" data-cell="G15">—</td><td class="center" data-cell="H15">—</td><td class="center" data-cell="I15">—</td></tr>
+                <tr><td class="bold">Відновлено вікон, шт</td><td class="center bold" data-cell="G16">—</td><td class="center" data-cell="H16">—</td><td class="center" data-cell="I16">—</td></tr>
+                <tr><td class="indent-cell">покрівель, м²</td><td class="center bold" data-cell="G17">—</td><td class="center" data-cell="H17">—</td><td class="center" data-cell="I17">—</td></tr>
+                <tr class="highlight-row"><td class="bold">Гуманітарна допомога</td><td class="center bold" data-cell="G18">—</td><td class="center" data-cell="H18">—</td><td class="center" data-cell="I18">—</td></tr>
+                <tr><td class="indent-cell">вивантажено, т</td><td class="center bold" data-cell="G19">—</td><td class="center" data-cell="H19">—</td><td class="center" data-cell="I19">—</td></tr>
+                <tr class="highlight-row"><td class="bold">Евакуація</td><td class="center bold" data-cell="G20">—</td><td class="center" data-cell="H20">—</td><td class="center" data-cell="I20">—</td></tr>
+                <tr><td class="indent-cell">евакуйовано осіб</td><td class="center bold" data-cell="G21">—</td><td class="center" data-cell="H21">—</td><td class="center" data-cell="I21">—</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- КОЛОНКА 3 -->
-    <div class="grid-column">
-      <div class="info-block blue-top">
-        <h2>⚡ Електропостачання</h2>
-        <div class="table-responsive-wrapper">
-          <table class="report-table">
-            <thead>
-              <tr><th>Причина</th><th class="center text-xs">Повністю</th><th class="center text-xs">Частково</th><th class="center text-xs">Абон.</th></tr>
-            </thead>
-            <tbody>
-              <tr><td class="bold text-orange">Погодні умови</td><td class="center bold" data-cell="L8">—</td><td class="center bold" data-cell="M8">—</td><td class="center bold alert-text" data-cell="N8">—</td></tr>
-              <tr><td class="bold text-orange">Бойові дії</td><td class="center bold" data-cell="L9">—</td><td class="center bold" data-cell="M9">—</td><td class="center bold alert-text" data-cell="N9">—</td></tr>
-              <tr class="highlight-row"><td class="bold text-orange">Всього</td><td class="center bold" data-cell="L10">—</td><td class="center bold" data-cell="M10">—</td><td class="center bold alert-text" data-cell="N10">—</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="info-block dark-top">
-        <h2>🚀 Наслідки бойових дій</h2>
-        <div class="table-responsive-wrapper">
-          <table class="report-table">
-            <thead>
-              <tr><th>Подій</th><th class="center text-xs">Доба</th><th class="center text-xs">2026</th><th class="center text-xs">Всього</th></tr>
-            </thead>
-            <tbody>
-              <tr><td class="bold">Пожежі (бойові дії)</td><td class="center bold" data-cell="G4">—</td><td class="center" data-cell="H4">—</td><td class="center" data-cell="I4">—</td></tr>
-              <tr><td class="bold">Пожежі із залученням</td><td class="center bold" data-cell="G5">—</td><td class="center" data-cell="H5">—</td><td class="center" data-cell="I5">—</td></tr>
-              <tr class="thick-row border-double"><td class="bold">Обстріли</td><td class="center bold" data-cell="G6">—</td><td class="center" data-cell="H6">—</td><td class="center" data-cell="I6">—</td></tr>
-              <tr><td class="indent-cell">пошкоджено будівлі</td><td class="center bold" data-cell="G7">—</td><td class="center" data-cell="H7">—</td><td class="center" data-cell="I7">—</td></tr>
-              <tr><td class="indent-cell">пошкоджено техніку</td><td class="center bold" data-cell="G8">—</td><td class="center" data-cell="H8">—</td><td class="center" data-cell="I8">—</td></tr>
-              <tr><td class="indent-cell">врятовані</td><td class="center bold" data-cell="G9">—</td><td class="center" data-cell="H9">—</td><td class="center" data-cell="I9">—</td></tr>
-              <tr><td class="indent-cell">з них дітей</td><td class="center bold" data-cell="G10">—</td><td class="center" data-cell="H10">—</td><td class="center" data-cell="I10">—</td></tr>
-              <tr><td class="indent-cell">загиблі</td><td class="center bold" data-cell="G11">—</td><td class="center" data-cell="H11">—</td><td class="center" data-cell="I11">—</td></tr>
-              <tr><td class="indent-cell">з них дітей</td><td class="center bold" data-cell="G12">—</td><td class="center" data-cell="H12">—</td><td class="center" data-cell="I12">—</td></tr>
-              <tr><td class="indent-cell">травмовані</td><td class="center bold" data-cell="G13">—</td><td class="center" data-cell="H13">—</td><td class="center" data-cell="I13">—</td></tr>
-              <tr><td class="indent-cell">з них дітей</td><td class="center bold" data-cell="G14">—</td><td class="center" data-cell="H14">—</td><td class="center" data-cell="I14">—</td></tr>
-              <tr class="highlight-row"><td class="bold">АРР</td><td class="center bold" data-cell="G15">—</td><td class="center" data-cell="H15">—</td><td class="center" data-cell="I15">—</td></tr>
-              <tr><td class="bold">Відновлено вікон, шт</td><td class="center bold" data-cell="G16">—</td><td class="center" data-cell="H16">—</td><td class="center" data-cell="I16">—</td></tr>
-              <tr><td class="indent-cell">покрівель, м²</td><td class="center bold" data-cell="G17">—</td><td class="center" data-cell="H17">—</td><td class="center" data-cell="I17">—</td></tr>
-              <tr class="highlight-row"><td class="bold">Гуманітарна допомога</td><td class="center bold" data-cell="G18">—</td><td class="center" data-cell="H18">—</td><td class="center" data-cell="I18">—</td></tr>
-              <tr><td class="indent-cell">вивантажено, т</td><td class="center bold" data-cell="G19">—</td><td class="center" data-cell="H19">—</td><td class="center" data-cell="I19">—</td></tr>
-              <tr class="highlight-row"><td class="bold">Евакуація</td><td class="center bold" data-cell="G20">—</td><td class="center" data-cell="H20">—</td><td class="center" data-cell="I20">—</td></tr>
-              <tr><td class="indent-cell">евакуйовано осіб</td><td class="center bold" data-cell="G21">—</td><td class="center" data-cell="H21">—</td><td class="center" data-cell="I21">—</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-  </main>
-</div>
+    </main>
+  </div>
 </section>
 
 <!-- ===== ПОПАП-ВІКНА ІНЦИДЕНТІВ ===== -->
@@ -895,24 +776,15 @@ html:-moz-full-screen{
   </div>
   <div class="incident-content">
     <table class="incident-table">
-      <colgroup>
-        <col style="width:7%">
-        <col style="width:18%">
-        <col style="width:29%">
-        <col style="width:19%">
-        <col style="width:8%">
-        <col style="width:8%">
-        <col style="width:11%">
-      </colgroup>
       <thead>
         <tr>
-          <th>Дата,<br>Час</th>
-          <th>Адреса,<br>місце пожежі</th>
-          <th>Що знищено, пошкоджено.<br>Причина пожежі, збиток</th>
-          <th>Які сили та засоби використовувалися</th>
-          <th>Відстань до пожежно-рятувального підрозділу</th>
-          <th>Відстань до найближчого ПМПК</th>
-          <th>Хто передав інформацію про пожежу</th>
+          <th>Дата, Час</th>
+          <th>Адреса, місце пожежі</th>
+          <th>Що знищено, пошкоджено. Причина, збиток</th>
+          <th>Сили та засоби</th>
+          <th>Відстань до ДСНС</th>
+          <th>Відстань до ПМПК</th>
+          <th>Хто передав інформацію</th>
         </tr>
       </thead>
       <tbody id="table-fires">
@@ -930,21 +802,11 @@ html:-moz-full-screen{
   </div>
   <div class="incident-content">
     <table class="incident-table">
-      <colgroup>
-        <col style="width:7%">
-        <col style="width:14%">
-        <col style="width:10%">
-        <col style="width:10%">
-        <col style="width:14%">
-        <col style="width:6%">
-        <col style="width:8%">
-        <col style="width:31%">
-      </colgroup>
       <thead>
         <tr>
           <th>Дата</th>
-          <th>Підрозділ, який залучався</th>
-          <th>Територіальна громада</th>
+          <th>Підрозділ</th>
+          <th>ТГ</th>
           <th>Населений пункт</th>
           <th>Тип поспринасу</th>
           <th>Кількість</th>
@@ -967,15 +829,6 @@ html:-moz-full-screen{
   </div>
   <div class="incident-content">
     <table class="incident-table">
-      <colgroup>
-        <col style="width:7%">
-        <col style="width:6%">
-        <col style="width:12%">
-        <col style="width:12%">
-        <col style="width:14%">
-        <col style="width:9%">
-        <col style="width:40%">
-      </colgroup>
       <thead>
         <tr>
           <th>Дата</th>
@@ -994,44 +847,38 @@ html:-moz-full-screen{
   </div>
 </div>
 
-<!-- НАДЗВИЧАЙНІ ПОДІЇ (ДТП, Вода, Інші) -->
+<!-- НАДЗВИЧАЙНІ ПОДІЇ (ДТП, ВОДА, ІНШЕ) -->
 <div class="incident-window" id="window-emergencies">
   <div class="incident-header">
-    🚨 Надзвичайні події
+    <span id="emergencies-header-title">🚨 Надзвичайні події</span>
     <span class="incident-close" onclick="closeIncidentWindow()">✖</span>
   </div>
   <div class="incident-content">
     <table class="incident-table">
-      <colgroup>
-        <col style="width:8%">
-        <col style="width:6%">
-        <col style="width:12%">
-        <col style="width:12%">
-        <col style="width:14%">
-        <col style="width:28%">
-        <col style="width:10%">
-        <col style="width:10%">
-      </colgroup>
       <thead>
         <tr>
+          <th>№ з/с</th>
           <th>Дата</th>
           <th>Час</th>
           <th>ТГ</th>
           <th>Населений пункт</th>
-          <th>Тип події</th>
-          <th>Опис</th>
           <th>Загиблі</th>
+          <th>Загиблих дітей</th>
           <th>Травмовані</th>
+          <th>Травмованих дітей</th>
+          <th>Врятовані</th>
+          <th>Врярованих дітей</th>
+          <th>Опис події</th>
         </tr>
       </thead>
       <tbody id="table-emergencies">
-        <tr><td colspan="8">Завантаження...</td></tr>
+        <tr><td colspan="12">Завантаження...</td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- ===== ПЕРЕГЛЯД ДОКУМЕНТІВ (PDF у самому сайті) ===== -->
+<!-- ===== ПЕРЕГЛЯД ДОКУМЕНТІВ (PDF) ===== -->
 <div class="doc-viewer-overlay" id="docViewerOverlay" onclick="closeDocViewer()"></div>
 <div class="doc-viewer-window" id="docViewerWindow">
   <div class="doc-viewer-header">
@@ -1124,7 +971,7 @@ html:-moz-full-screen{
   <a class="icon-btn" title="Стройова записка" href="https://docs.google.com/spreadsheets/d/1OR9eARR4VgsJXBhjDRVsAoe7oi2InDxR1glKTsWF4a0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">📄</a>
 </div>
 
-<!-- ===== НАВІГАЦІЯ МІЖ СТОРІНКАМИ ===== -->
+<!-- ===== СНАПШОТНІ СКРИПТИ ТА НАВІГАЦІЯ ===== -->
 <script>
   var mapInitialized = false;
 
@@ -1134,7 +981,7 @@ html:-moz-full-screen{
 
     if (name === 'operational') {
       document.getElementById('page-operational').classList.add('active');
-      document.getElementById('iconToolbar').style.display = 'none'; // ховаємо панель
+      document.getElementById('iconToolbar').style.display = 'none';
       if (!mapInitialized) {
         mapInitialized = true;
         initMap();
@@ -1142,7 +989,7 @@ html:-moz-full-screen{
       }
     } else {
       document.getElementById('page-home').style.display = 'flex';
-      document.getElementById('iconToolbar').style.display = 'flex'; // показуємо на головній
+      document.getElementById('iconToolbar').style.display = 'flex';
     }
     closeAllDropdowns();
   }
@@ -1150,7 +997,7 @@ html:-moz-full-screen{
   function goHome() {
     document.getElementById('page-operational').classList.remove('active');
     document.getElementById('page-home').style.display = 'flex';
-    document.getElementById('iconToolbar').style.display = 'flex'; // показуємо панель знову
+    document.getElementById('iconToolbar').style.display = 'flex';
   }
 
   function closeAllDropdowns() {
@@ -1162,14 +1009,12 @@ html:-moz-full-screen{
     });
   }
 
-  // Закриття спливаючих меню при кліку поза панеллю
   document.addEventListener('click', function(e) {
     if (!e.target.closest('.icon-btn-wrap')) {
       closeAllDropdowns();
     }
   });
 
-  // ===== ОНОВЛЕННЯ ДАНИХ (кнопка під "На головну") =====
   function manualRefresh(btn) {
     var textEl = btn.querySelector('.refresh-text');
     var origText = textEl.textContent;
@@ -1191,9 +1036,8 @@ html:-moz-full-screen{
   }
 </script>
 
-<!-- ===== КАРТА (оновлена версія - замість старої) ===== -->
+<!-- ===== КАРТА ===== -->
 <script>
-// ВСТАВТЕ СЮДИ ВАШ URL APPS SCRIPT
 var MAP_API_URL = 'https://script.google.com/macros/s/AKfycbwTYEsN6LWDcgcyQ5ccmOF8hfYK1ob98P_vter4L_k5w5HiHDoIieaCytF55R2yBDpxTA/exec';
 
 var DSNS_MAP_LAYERS = [
@@ -1267,8 +1111,6 @@ function dsnsLoadLayer(layer, callback) {
   }
 
   window[id] = function(rows) {
-    console.log('📊 Отримано дані для "' + layer.name + '":', rows);
-
     if (Array.isArray(rows)) {
       rows.forEach(function(row) {
         var coordsRaw = row.coords || row[0] || '';
@@ -1283,10 +1125,8 @@ function dsnsLoadLayer(layer, callback) {
     finish();
   };
 
-  // Використовуємо параметр map=true для карти
   script.src = MAP_API_URL + '?map=true&type=' + encodeURIComponent(layer.name) + '&callback=' + id;
   script.onerror = function() {
-    console.error('❌ Помилка завантаження:', layer.name);
     finish();
   };
   document.head.appendChild(script);
@@ -1318,13 +1158,10 @@ function dsnsBuildLegend(results) {
   document.getElementById('map-legend').style.display = 'block';
 }
 
-// Можна викликати повторно (напр. з кнопки "Оновити дані"),
-// щоб перезавантажити мітки на вже створеній карті.
 function refreshDsnsMap() {
   if (!dsnsMap || dsnsMapLoading) return;
   dsnsMapLoading = true;
 
-  // прибираємо старі шари перед перезавантаженням
   Object.keys(dsnsLayerGroups).forEach(function(name) {
     dsnsMap.removeLayer(dsnsLayerGroups[name]);
   });
@@ -1438,7 +1275,7 @@ function toggleAccordion(btn) {
 }
 </script>
 
-<!-- ===== ШИРОКОФОРМАТНИЙ РЕЖИМ (справжній Fullscreen API, як F11) ===== -->
+<!-- ===== FULLSCREEN РЕЖИМ ===== -->
 <script>
 var currentFullscreenBtn = null;
 var currentFullscreenTargetId = null;
@@ -1448,7 +1285,7 @@ function setWidescreenIcon(btn, active) {
   var text = btn.querySelector('.ws-text');
   if (active) {
     if (icon) icon.textContent = '🗗';
-    if (text) text.textContent = 'Звичайний формат';
+    if (text) text.textContent = 'Ззвичайний формат';
     btn.classList.add('active-widescreen');
   } else {
     if (icon) icon.textContent = '⛶';
@@ -1478,14 +1315,6 @@ function exitFs() {
   return null;
 }
 
-// targetId — блок, який ВІЗУАЛЬНО вважається "розгорнутим" (використовується
-// лише для класу is-fullscreen-target і стилізації). Сам fullscreen ми
-// завжди запитуємо для <html> (document.documentElement) — це критично:
-// усі попапи, панелі, картки, кнопки в проєкті лежать у DOM ПОЗА
-// #page-operational / .deployment-window, і якби в fullscreen переходив
-// лише сам блок, браузер показував би тільки його — усе решта (вікна
-// інцидентів, перегляд документів, панель деталей елеватора, галерея фото,
-// кнопки на панелі іконок тощо) ставало б невидимим і нефункціональним.
 function toggleFullscreenMode(targetId, btn) {
   var el = document.getElementById(targetId);
   if (!el) return;
@@ -1522,7 +1351,6 @@ function handleFullscreenChange() {
     currentFullscreenTargetId = null;
   }
 
-  // Даємо картам перерахувати розміри після переходу в/з повноекранного режиму
   setTimeout(function() {
     if (typeof dsnsMap !== 'undefined' && dsnsMap) dsnsMap.invalidateSize();
     if (typeof deploymentMapInstance !== 'undefined' && deploymentMapInstance) deploymentMapInstance.invalidateSize();
@@ -1535,6 +1363,7 @@ document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 document.addEventListener('msfullscreenchange', handleFullscreenChange);
 document.addEventListener('mozfullscreenchange', handleFullscreenChange);
 </script>
+
 <script>
 function toggleAnalyticsMenu(e) {
     if (e) e.stopPropagation();
@@ -1561,7 +1390,6 @@ function toggleNormativnyMenu(e) {
 }
 </script>
 
-
 <script>
 async function saveOperationalPDF() {
   const element = document.querySelector('.dashboard-wrapper');
@@ -1573,7 +1401,6 @@ async function saveOperationalPDF() {
   });
 
   const imgData = canvas.toDataURL('image/jpeg', 1.0);
-
   const { jsPDF } = window.jspdf;
 
   const pdf = new jsPDF({
@@ -1614,193 +1441,206 @@ async function saveOperationalPDF() {
 }
 </script>
 
-
+<!-- ===== СКРИПТ ПОПАП-ВІКОН ІНЦИДЕНТІВ ===== -->
 <script>
-// ===== ПОПАП-ВІКНА ІНЦИДЕНТІВ =====
-const INCIDENT_API = 'https://script.google.com/macros/s/AKfycbzt9OafZq1cr6CiHsf7yFsybR2X31PZlaEuS6qnSojg0to9JRDEFqHC0BrVqgsVvGkjHg/exec';
+  (function initSyncCounters() {
+    var API_URL = 'https://script.google.com/macros/s/AKfycby2jNEZR3OV_R1r4v7TWS2dK7qaevHzAmZJAqRoKktrD0mr6SGLBdfOVJySRBZ7azJL2g/exec';
 
-const INCIDENT_CONFIG = {
-  // ===== ПОЖЕЖІ =====
-  fires: {
-    cols: 7,
-    render: function(row) {
-      return (
-        '<td class="col-center">' + (row.time    || '-') + '</td>' +
-        '<td class="col-left">'   + (row.address || '-') + '</td>' +
-        '<td class="col-left">'   + (row.damage  || '-') + '</td>' +
-        '<td class="col-accent">' + (row.forces  || '-') + '</td>' +
-        '<td class="col-center">' + (row.dist1   || '-') + '</td>' +
-        '<td class="col-center">' + (row.dist2   || '-') + '</td>' +
-        '<td class="col-center">' + (row.source  || '-') + '</td>'
-      );
+    function cellToIndex(ref) {
+      var match = ref.match(/^([A-Z]+)(\d+)$/i);
+      if (!match) return null;
+      var col = match[1].toUpperCase().split('').reduce(function(acc, ch) {
+        return acc * 26 + ch.charCodeAt(0) - 64;
+      }, 0) - 1;
+      var row = parseInt(match[2]) - 1;
+      return { row: row, col: col };
     }
-  },
-  // ===== ВНП =====
-  vnp: {
-    cols: 8,
-    render: function(row) {
-      return (
-        '<td class="col-center">' + (row.date       || '-') + '</td>' +
-        '<td class="col-left">'   + (row.unit        || '-') + '</td>' +
-        '<td class="col-left">'   + (row.community   || '-') + '</td>' +
-        '<td class="col-left">'   + (row.settlement  || '-') + '</td>' +
-        '<td class="col-left">'   + (row.type        || '-') + '</td>' +
-        '<td class="col-center">' + (row.qty         || '-') + '</td>' +
-        '<td class="col-center">' + (row.area        || '-') + '</td>' +
-        '<td class="col-left">'   + (row.desc        || '-') + '</td>'
-      );
-    }
-  },
-  // ===== БОЙОВІ ДІЇ (ОБСТРІЛИ) =====
-  shelling: {
-    cols: 7,
-    render: function(row) {
-      var badge = '-';
-      if (row.consequences === 'Так') badge = '<span class="badge-yes">Так</span>';
-      else if (row.consequences === 'Ні') badge = '<span class="badge-no">Ні</span>';
-      else if (row.consequences) badge = row.consequences;
 
-      return (
-        '<td class="col-center">' + (row.date        || '-') + '</td>' +
-        '<td class="col-center">' + (row.time        || '-') + '</td>' +
-        '<td class="col-left">'   + (row.community   || '-') + '</td>' +
-        '<td class="col-left">'   + (row.settlement  || '-') + '</td>' +
-        '<td class="col-left">'   + (row.type        || '-') + '</td>' +
-        '<td class="col-center">' + badge + '</td>' +
-        '<td class="col-left">'   + (row.desc         || '-') + '</td>'
-      );
+    function syncCounters() {
+      fetch(API_URL, { redirect: 'follow' })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          document.querySelectorAll('[data-cell]').forEach(function(el) {
+            var idx = cellToIndex(el.dataset.cell);
+            if (!idx) return;
+            var val = data[idx.row] && data[idx.row][idx.col];
+            if (val !== undefined && val !== '') el.textContent = val;
+          });
+        })
+        .catch(function(err) { console.error('Синхронізація:', err); });
     }
-  },
-  // ===== НАДЗВИЧАЙНІ ПОДІЇ (ДТП, Вода, Інші) =====
-  emergencies: {
-    cols: 8,
-    render: function(row) {
+
+    syncCounters();
+    setInterval(syncCounters, 5 * 60 * 1000);
+  })();
+
+  // НОВИЙ ВСТАВЛЕНИЙ КЛЮЧ
+  const INCIDENT_API = 'https://script.google.com/macros/s/AKfycbzJV_jG_xuq4Ve0_ugegu1HoTK5VJM1mXs5r-lRCJnbnRsCmjnTy6DkhQs6Kh7IA1axSA/exec';
+
+  const INCIDENT_CONFIG = {
+    fires: {
+      windowId: 'window-fires',
+      tbodyId: 'table-fires',
+      cols: 7,
+      render: function(row) {
+        return (
+          '<td class="col-center">' + (row.time    || '-') + '</td>' +
+          '<td class="col-left">'   + (row.address || '-') + '</td>' +
+          '<td class="col-left">'   + (row.damage  || '-') + '</td>' +
+          '<td class="col-accent">' + (row.forces  || '-') + '</td>' +
+          '<td class="col-center">' + (row.dist1   || '-') + '</td>' +
+          '<td class="col-center">' + (row.dist2   || '-') + '</td>' +
+          '<td class="col-center">' + (row.source  || '-') + '</td>'
+        );
+      }
+    },
+    vnp: {
+      windowId: 'window-vnp',
+      tbodyId: 'table-vnp',
+      cols: 8,
+      render: function(row) {
+        return (
+          '<td class="col-center">' + (row.date       || '-') + '</td>' +
+          '<td class="col-left">'   + (row.unit        || '-') + '</td>' +
+          '<td class="col-left">'   + (row.community   || '-') + '</td>' +
+          '<td class="col-left">'   + (row.settlement  || '-') + '</td>' +
+          '<td class="col-left">'   + (row.type        || '-') + '</td>' +
+          '<td class="col-center">' + (row.qty         || '-') + '</td>' +
+          '<td class="col-center">' + (row.area        || '-') + '</td>' +
+          '<td class="col-left">'   + (row.desc        || '-') + '</td>'
+        );
+      }
+    },
+    shelling: {
+      windowId: 'window-shelling',
+      tbodyId: 'table-shelling',
+      cols: 7,
+      render: function(row) {
+        var badge = '-';
+        if (row.consequences === 'Так') badge = '<span class="badge-yes">Так</span>';
+        else if (row.consequences === 'Ні') badge = '<span class="badge-no">Ні</span>';
+        else if (row.consequences) badge = row.consequences;
+
+        return (
+          '<td class="col-center">' + (row.date        || '-') + '</td>' +
+          '<td class="col-center">' + (row.time        || '-') + '</td>' +
+          '<td class="col-left">'   + (row.community   || '-') + '</td>' +
+          '<td class="col-left">'   + (row.settlement  || '-') + '</td>' +
+          '<td class="col-left">'   + (row.type        || '-') + '</td>' +
+          '<td class="col-center">' + badge + '</td>' +
+          '<td class="col-left">'   + (row.desc        || '-') + '</td>'
+        );
+      }
+    },
+    emergenciesRender: function(row) {
       return (
+        '<td class="col-center">' + (row.num          || '-') + '</td>' +
         '<td class="col-center">' + (row.date         || '-') + '</td>' +
         '<td class="col-center">' + (row.time         || '-') + '</td>' +
         '<td class="col-left">'   + (row.community    || '-') + '</td>' +
         '<td class="col-left">'   + (row.settlement   || '-') + '</td>' +
-        '<td class="col-left">'   + (row.type         || '-') + '</td>' +
-        '<td class="col-left">'   + (row.description  || '-') + '</td>' +
-        '<td class="col-center">' + (row.victims      || '-') + '</td>' +
-        '<td class="col-center">' + (row.injured      || '-') + '</td>'
+        '<td class="col-center col-accent">' + (row.victims      || '-') + '</td>' +
+        '<td class="col-center col-accent">' + (row.victimsChild || '-') + '</td>' +
+        '<td class="col-center">' + (row.injured      || '-') + '</td>' +
+        '<td class="col-center">' + (row.injuredChild || '-') + '</td>' +
+        '<td class="col-center">' + (row.rescued      || '-') + '</td>' +
+        '<td class="col-center">' + (row.rescuedChild || '-') + '</td>' +
+        '<td class="col-left">'   + (row.desc         || '-') + '</td>'
       );
-    },
-    // Фільтр за типом події
-    filterByType: function(row, filterType) {
-      if (!filterType) return true;
-      var eventType = (row.type || '').toString().trim();
-      var filter = filterType.toString().trim();
-      return eventType === filter;
     }
-  }
-};
+  };
 
-function openIncidentWindow(type, btn, filterType) {
-  document.querySelectorAll('.counter-item[data-incident]').forEach(function(el) {
-    el.classList.remove('active-incident');
-  });
-  if (btn) btn.classList.add('active-incident');
+  INCIDENT_CONFIG.dtp = {
+    windowId: 'window-emergencies',
+    tbodyId: 'table-emergencies',
+    title: '🚗 Дорожньо-транспортні пригоди (ДТП)',
+    cols: 12,
+    render: INCIDENT_CONFIG.emergenciesRender
+  };
+  INCIDENT_CONFIG.water = {
+    windowId: 'window-emergencies',
+    tbodyId: 'table-emergencies',
+    title: '🌊 Події на водних об\'єктах',
+    cols: 12,
+    render: INCIDENT_CONFIG.emergenciesRender
+  };
+  INCIDENT_CONFIG.other = {
+    windowId: 'window-emergencies',
+    tbodyId: 'table-emergencies',
+    title: '⚠️ Інші надзвичайні події',
+    cols: 12,
+    render: INCIDENT_CONFIG.emergenciesRender
+  };
 
-  document.querySelectorAll('.incident-window').forEach(function(w) {
-    w.classList.remove('show');
-  });
-
-  var win = document.getElementById('window-' + type);
-  if (win) win.classList.add('show');
-  document.getElementById('incidentOverlay').classList.add('show');
-
-  loadIncidentData(type, filterType);
-}
-
-function closeIncidentWindow() {
-  document.querySelectorAll('.incident-window').forEach(function(w) {
-    w.classList.remove('show');
-  });
-  document.getElementById('incidentOverlay').classList.remove('show');
-  document.querySelectorAll('.counter-item[data-incident]').forEach(function(el) {
-    el.classList.remove('active-incident');
-  });
-}
-
-function loadIncidentData(type, filterType) {
-  var cfg   = INCIDENT_CONFIG[type];
-  var tbody = document.getElementById('table-' + type);
-  if (!cfg || !tbody) return;
-
-  tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">Завантаження...</td></tr>';
-
-  var url = INCIDENT_API + '?type=' + type;
-  console.log('📡 Запит до:', url);
-  console.log('🔍 Фільтр:', filterType);
-
-  fetch(url)
-    .then(function(res) { 
-      console.log('📥 Статус відповіді:', res.status);
-      return res.text(); 
-    })
-    .then(function(text) {
-      console.log('📄 Відповідь (текст):', text);
-      
-      var data;
-      try {
-        data = JSON.parse(text);
-        console.log('✅ Розпарсено:', data);
-      } catch (e) {
-        console.error('❌ Помилка парсингу:', e);
-        tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">Помилка: не JSON</td></tr>';
-        return;
-      }
-
-      if (!Array.isArray(data)) {
-        console.error('❌ Дані не масив:', data);
-        tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">' +
-          (data && data.error ? data.error : 'Дані не отримано') + '</td></tr>';
-        return;
-      }
-
-      console.log('📊 Всього рядків:', data.length);
-      if (data.length > 0) {
-        console.log('📋 Перший рядок:', data[0]);
-        console.log('📋 Всі типи подій:', data.map(function(row) { return row.type; }));
-      }
-
-      if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">⚠️ Даних немає</td></tr>';
-        return;
-      }
-
-      // Фільтрація даних
-      var filteredData = data;
-      
-      if (cfg.filterByType && filterType) {
-        console.log('🔍 Фільтруємо за типом:', filterType);
-        filteredData = data.filter(function(row) {
-          var rowType = (row.type || '').toString().trim();
-          var filter = filterType.toString().trim();
-          var match = rowType === filter;
-          console.log('   Рядок:', rowType, '->', match ? '✅' : '❌');
-          return match;
-        });
-      }
-
-      console.log('📊 Після фільтрації:', filteredData.length);
-
-      if (filteredData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">❌ Заповнених даних немає<br><small>(перевірте значення в колонці "Тип події")</small></td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = '';
-      filteredData.forEach(function(row) {
-        tbody.innerHTML += '<tr>' + cfg.render(row) + '</tr>';
-      });
-    })
-    .catch(function(error) {
-      console.error('❌ Помилка запиту:', error);
-      tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">❌ Помилка підключення</td></tr>';
+  function openIncidentWindow(type, btn) {
+    document.querySelectorAll('.counter-item[data-incident]').forEach(function(el) {
+      el.classList.remove('active-incident');
     });
-}
+    if (btn) btn.classList.add('active-incident');
+
+    document.querySelectorAll('.incident-window').forEach(function(w) {
+      w.classList.remove('show');
+    });
+
+    var cfg = INCIDENT_CONFIG[type];
+    if (!cfg) return;
+
+    var win = document.getElementById(cfg.windowId);
+    if (win) {
+      if (cfg.title) {
+        var titleEl = document.getElementById('emergencies-header-title');
+        if (titleEl) titleEl.textContent = cfg.title;
+      }
+      win.classList.add('show');
+    }
+    document.getElementById('incidentOverlay').classList.add('show');
+
+    loadIncidentData(type);
+  }
+
+  function closeIncidentWindow() {
+    document.querySelectorAll('.incident-window').forEach(function(w) {
+      w.classList.remove('show');
+    });
+    document.getElementById('incidentOverlay').classList.remove('show');
+    document.querySelectorAll('.counter-item[data-incident]').forEach(function(el) {
+      el.classList.remove('active-incident');
+    });
+  }
+
+  function loadIncidentData(type) {
+    var cfg   = INCIDENT_CONFIG[type];
+    if (!cfg) return;
+
+    var tbody = document.getElementById(cfg.tbodyId);
+    if (!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">Завантаження...</td></tr>';
+
+    fetch(INCIDENT_API + '?type=' + encodeURIComponent(type))
+      .then(function(res) { return res.text(); })
+      .then(function(text) {
+        var data;
+        try { data = JSON.parse(text); }
+        catch (e) {
+          tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">Помилка: не JSON</td></tr>';
+          return;
+        }
+
+        if (!Array.isArray(data) || data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">⚠️ Записи відсутні в цій категорії</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        data.forEach(function(row) {
+          tbody.innerHTML += '<tr>' + cfg.render(row) + '</tr>';
+        });
+      })
+      .catch(function(error) {
+        tbody.innerHTML = '<tr><td colspan="' + cfg.cols + '">❌ Помилка підключення до сервера</td></tr>';
+      });
+  }
 </script>
 
 <!-- ===== ПЕРЕГЛЯД ДОКУМЕНТІВ (PDF) ===== -->
@@ -1820,14 +1660,14 @@ function closeDocViewer() {
 }
 </script>
 
-<!-- ===== ПОВНОЕКРАННА КАРТА "ЗАЛУЧЕННЯ ПІДРОЗДІЛІВ" ===== -->
+<!-- ===== КАРТА "ЗАЛУЧЕННЯ ПІДРОЗДІЛІВ" ===== -->
 <script>
 var deploymentMapInitialized = false;
 var deploymentMapInstance   = null;
 var deploymentLayerGroups   = {};
 var deploymentLayerVisible  = {};
 var deploymentSyncTimer     = null;
-var deploymentFirstLoad     = true;   // ← новий прапорець
+var deploymentFirstLoad     = true;
 
 var DEPLOYMENT_API_URL = 'https://script.google.com/macros/s/AKfycbynYHO2Es-m1QnZWRXV4AP6kzFF_hOxu5zje6_L0-0UXi99fawa030bLID4Tkz7hSsEnw/exec';
 var DEPLOYMENT_SYNC_INTERVAL = 60 * 1000;
@@ -1840,7 +1680,6 @@ var DEPLOYMENT_TYPE_STYLE = {
   'НП на Воді':        { icon: '🌊', color: '#0ea5e9' },
   'Евакуація':         { icon: '🚨', color: '#0ea5e9' },
   'Удари':             { icon: '🚀', color: '#0ea5e9' }
-
 };
 
 var DEPLOYMENT_DEFAULT_STYLE = { icon: '🚒', color: '#94a3b8' };
@@ -1866,9 +1705,7 @@ function closeDeploymentMap() {
 
 function initDeploymentMap() {
   deploymentMapInstance = L.map('deployment-map', {
-    zoomControl: true,
-    scrollWheelZoom: true,
-    tap: true
+    zoomControl: true, scrollWheelZoom: true, tap: true
   }).setView([51.5, 34.0], 8);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1898,10 +1735,7 @@ function makeDeploymentMarker(coords, style, popupHtml) {
   var size = window.innerWidth < 600 ? 20 : 26;
   var divIcon = L.divIcon({
     html: '<div style="font-size:' + size + 'px; line-height:1; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.8)); cursor:pointer;">' + style.icon + '</div>',
-    className: '',
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    popupAnchor: [0, -(size / 2 + 4)]
+    className: '', iconSize: [size, size], iconAnchor: [size / 2, size / 2], popupAnchor: [0, -(size / 2 + 4)]
   });
   return L.marker(coords, { icon: divIcon }).bindPopup(
     '<div class="popup-layer" style="color:' + style.color + '">' + style.icon + ' ' + (style.label || 'Подія') + '</div>' +
@@ -1960,38 +1794,17 @@ function buildDeploymentLegend(counts) {
 }
 
 function loadDeploymentData() {
-  if (!DEPLOYMENT_API_URL) {
-    setDeploymentStatus('error', '❌ Не вказано DEPLOYMENT_API_URL');
-    return;
-  }
-
+  if (!DEPLOYMENT_API_URL) return;
   setDeploymentStatus('loading', 'Завантаження…');
 
-  var url = DEPLOYMENT_API_URL + '?_=' + Date.now();
-
-  fetch(url)
-    .then(function(res) {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.text();
-    })
+  fetch(DEPLOYMENT_API_URL + '?_=' + Date.now())
+    .then(function(res) { return res.text(); })
     .then(function(text) {
       var data;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        console.error('❌ Відповідь не є JSON:', text);
-        setDeploymentStatus('error', '❌ Відповідь скрипта не JSON (перевірте деплой)');
-        return;
-      }
-
-      if (data.error) {
-        console.error('❌ Помилка скрипта:', data.error, data.debug);
-        setDeploymentStatus('error', '❌ ' + data.error);
-        return;
-      }
+      try { data = JSON.parse(text); } catch (e) { return; }
+      if (data.error) return;
 
       var rows = data.rows || [];
-      console.log('📊 Отримано рядків:', rows.length, 'debug:', data.debug);
 
       Object.values(deploymentLayerGroups).forEach(function(g) {
         deploymentMapInstance.removeLayer(g);
@@ -2021,34 +1834,24 @@ function loadDeploymentData() {
         pts.push(coords);
       });
 
-     if (pts.length && deploymentMapInstance) {
-        if (deploymentFirstLoad) {
-          var fg = L.featureGroup(pts.map(function(p) { return L.circleMarker(p); }));
-          deploymentMapInstance.fitBounds(fg.getBounds().pad(0.15));
-          deploymentFirstLoad = false;
-        }
+      if (pts.length && deploymentMapInstance && deploymentFirstLoad) {
+        var fg = L.featureGroup(pts.map(function(p) { return L.circleMarker(p); }));
+        deploymentMapInstance.fitBounds(fg.getBounds().pad(0.15));
+        deploymentFirstLoad = false;
       }
 
       buildDeploymentLegend(counts);
 
-      if (pts.length === 0) {
-        var reason = rows.length === 0
-          ? 'Дані відсутні в обох аркушах'
-          : 'Є ' + rows.length + ' рядків, але координати не розпізнано';
-        setDeploymentStatus('error', '⚠️ Точок немає: ' + reason);
-      } else {
-        var t = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-        setDeploymentStatus('ok', '✅ ' + pts.length + ' точок · ' + t);
-      }
+      var t = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+      setDeploymentStatus('ok', '✅ ' + pts.length + ' точок · ' + t);
     })
     .catch(function(err) {
-      console.error('❌ Помилка завантаження даних:', err);
       setDeploymentStatus('error', '❌ Помилка з’єднання зі скриптом');
     });
 }
 </script>
 
-<!-- ===== ПОВНОЕКРАННА КАРТА "ЕЛЕВАТОРИ" ===== -->
+<!-- ===== КАРТА "ЕЛЕВАТОРИ" ===== -->
 <script>
 var elevatorsMapInitialized = false;
 var elevatorsMapInstance    = null;
@@ -2057,12 +1860,11 @@ var elevatorsLayerVisible   = {};
 var elevatorsSyncTimer      = null;
 var elevatorsFirstLoad      = true;
 var elevatorsMarkersByNum   = {};
-var elevatorsRowsByNum      = {};   // НОВЕ: зберігаємо повні дані рядка для панелі деталей
+var elevatorsRowsByNum      = {};
 var elevatorsSelectedNums   = new Set();
 var elevatorsDistrictOrder  = ['Сумський', 'Конотопський', 'Шосткинський', 'Роменський', 'Охтирський', 'Припинено діяльність через воєнні дії'];
 
 var ELEVATORS_STOPPED_DISTRICT = 'Припинено діяльність через воєнні дії';
-
 var ELEVATORS_API_URL = 'https://script.google.com/macros/s/AKfycbyy0-TXRBZwXs0MSxC5G12iguKXMExxBqSEsYSLA7HTnsDDgE1bQiY3EQy8_oUKZhI3MQ/exec';
 var ELEVATORS_SYNC_INTERVAL = 60 * 1000;
 
@@ -2130,7 +1932,6 @@ function makeElevatorMarker(coords, style, num) {
     className: '', iconSize: [size, size], iconAnchor: [size / 2, size / 2]
   });
   var marker = L.marker(coords, { icon: divIcon });
-  // Клік по точці відкриває панель деталей (замість маленького popup)
   marker.on('click', function() { openElevatorDetail(num); });
   return marker;
 }
@@ -2252,8 +2053,6 @@ function renderElevatorsPanel(rows, districts) {
       chip.setAttribute('data-num', row.num);
       if (elevatorsSelectedNums.has(row.num)) chip.classList.add('active');
       chip.onclick = function() {
-        // Клік по назві підприємства в лівій панелі лише фільтрує/виділяє точку на мапі.
-        // Бокова панель з деталями відкривається виключно кліком по самій точці на мапі.
         toggleElevatorNum(row.num, chip);
       };
       numsEl.appendChild(chip);
@@ -2268,17 +2067,15 @@ function renderElevatorsPanel(rows, districts) {
 }
 
 function loadElevatorsData() {
-  if (!ELEVATORS_API_URL) { setElevatorsStatus('error', '❌ Не вказано ELEVATORS_API_URL'); return; }
+  if (!ELEVATORS_API_URL) return;
   setElevatorsStatus('loading', 'Завантаження…');
-  var url = ELEVATORS_API_URL + '?_=' + Date.now();
 
-  fetch(url)
-    .then(function(res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
+  fetch(ELEVATORS_API_URL + '?_=' + Date.now())
+    .then(function(res) { return res.text(); })
     .then(function(text) {
       var data;
-      try { data = JSON.parse(text); }
-      catch (e) { setElevatorsStatus('error', '❌ Відповідь скрипта не JSON'); return; }
-      if (data.error) { setElevatorsStatus('error', '❌ ' + data.error); return; }
+      try { data = JSON.parse(text); } catch (e) { return; }
+      if (data.error) return;
 
       var rows = data.rows || [];
       Object.values(elevatorsLayerGroups).forEach(function(g) { elevatorsMapInstance.removeLayer(g); });
@@ -2328,20 +2125,14 @@ function loadElevatorsData() {
 
       buildElevatorsLegend(counts);
 
-      if (pts.length === 0) {
-        setElevatorsStatus('error', '⚠️ Точок немає');
-      } else {
-        var t = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-        setElevatorsStatus('ok', '✅ ' + pts.length + ' точок · ' + t);
-      }
+      var t = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+      setElevatorsStatus('ok', '✅ ' + pts.length + ' точок · ' + t);
     })
     .catch(function(err) {
-      console.error('❌ Помилка завантаження даних (елеватори):', err);
       setElevatorsStatus('error', '❌ Помилка з’єднання зі скриптом');
     });
 }
 
-// ===== ПАНЕЛЬ ДЕТАЛЕЙ (половина екрана, з правого краю в центр) =====
 var currentDetailRow = null;
 
 function openElevatorDetail(num) {
@@ -2359,7 +2150,6 @@ function openElevatorDetail(num) {
   document.getElementById('elevatorCatPG').classList.toggle('disabled', pgCount === 0);
   document.getElementById('elevatorCatPV').classList.toggle('disabled', pvCount === 0);
 
-  // Скидаємо стан розгортання секції фото при кожному новому відкритті
   document.getElementById('elevatorPhotoCategories').classList.remove('open');
   document.getElementById('elevatorPhotoToggle').classList.remove('open');
 
@@ -2377,7 +2167,6 @@ function togglePhotoSection() {
   document.getElementById('elevatorPhotoToggle').classList.toggle('open');
 }
 
-// ===== ГАЛЕРЕЯ ФОТО (перегортання вправо/вліво) =====
 var galleryPhotos = [];
 var galleryIndex  = 0;
 
@@ -2412,7 +2201,6 @@ function galleryPrev() {
   renderGalleryImage();
 }
 
-// Клавіатура: стрілки для гортання, Esc для закриття
 document.addEventListener('keydown', function(e) {
   if (!document.getElementById('photoGalleryOverlay').classList.contains('show')) return;
   if (e.key === 'ArrowRight') galleryNext();
@@ -2420,6 +2208,7 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeGallery();
 });
 </script>
+
 <!-- ===== ПАНЕЛЬ ДЕТАЛЕЙ ЕЛЕВАТОРА ===== -->
 <div class="elevator-detail-overlay" id="elevatorDetailOverlay" onclick="closeElevatorDetail()"></div>
 <div class="elevator-detail-panel" id="elevatorDetailPanel">
@@ -2455,5 +2244,6 @@ document.addEventListener('keydown', function(e) {
   </div>
   <div class="photo-gallery-nav next" onclick="galleryNext()">›</div>
 </div>
+
 </body>
 </html>
