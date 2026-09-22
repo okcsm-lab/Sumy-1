@@ -9,69 +9,150 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; -webkit-tap-highlight-color: transparent; }
 
     /* ===== ГОЛОВНА СТОРІНКА ===== */
     #page-home {
       position: relative;
       min-height: 100vh;
-      display: flex; align-items: flex-start; justify-content: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
       text-align: center; padding: 0;
       overflow: hidden;
     }
     #page-home .home-bg {
       position: absolute; inset: 0;
-      background-image: url('dsns-1.jpeg');
+      background-image: url('https://lh3.googleusercontent.com/d/11eTMyyl_3IPAG5OGS8rf2uE5W19Pjl89');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      filter: contrast(1) brightness(1) saturate(1);
       z-index: 0;
     }
     #page-home .home-overlay {
       position: absolute; inset: 0;
-      background:
-        linear-gradient(180deg, rgba(5,10,25,0.55) 0%, rgba(5,10,25,0) 22%, rgba(5,10,25,0) 70%, rgba(5,10,25,0.65) 100%);
+      background: linear-gradient(180deg, rgba(5,10,25,0.45) 0%, rgba(5,10,25,0.15) 50%, rgba(5,10,25,0.65) 100%);
       z-index: 1;
     }
     #page-home .home-content {
       position: relative; z-index: 2;
       width: 100%; max-width: 980px;
-      padding: 48px 24px 0;
+      margin-top: 50px; padding: 0 20px;
     }
     #page-home .home-eyebrow {
       font-family: 'Rajdhani', sans-serif;
-      font-size: 12px; font-weight: 700; letter-spacing: 4px;
-      color: #38bdf8; text-transform: uppercase;
-      margin-bottom: 14px;
+      font-size: 13px; font-weight: 700; letter-spacing: 4px;
+      color: #38bdf8; text-transform: uppercase; margin-bottom: 14px;
       text-shadow: 0 0 18px rgba(56,189,248,0.6);
     }
     #page-home .home-eyebrow::before,
     #page-home .home-eyebrow::after {
-      content: '';
-      display: inline-block; width: 36px; height: 1px;
+      content: ''; display: inline-block; width: 36px; height: 1px;
       background: linear-gradient(90deg, transparent, #38bdf8);
       vertical-align: middle; margin: 0 10px 3px;
     }
     #page-home .home-eyebrow::after { background: linear-gradient(90deg, #38bdf8, transparent); }
     #page-home h1 {
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 900;
-      font-size: clamp(22px, 4.2vw, 44px);
-      line-height: 1.25;
-      letter-spacing: 1px;
+      font-family: 'Orbitron', sans-serif; font-weight: 900;
+      font-size: clamp(22px, 4.2vw, 44px); line-height: 1.25; letter-spacing: 1px;
       background: linear-gradient(135deg, #ffffff 0%, #93c5fd 45%, #38bdf8 75%, #818cf8 100%);
       -webkit-background-clip: text; background-clip: text; color: transparent;
-      text-shadow: 0 4px 30px rgba(56,189,248,0.35);
-      margin-bottom: 16px;
+      text-shadow: 0 4px 30px rgba(56,189,248,0.35); margin-bottom: 16px;
     }
     #page-home .home-divider {
       width: 110px; height: 3px; margin: 0 auto 18px;
       background: linear-gradient(90deg, transparent, #38bdf8, #818cf8, transparent);
-      border-radius: 4px;
-      box-shadow: 0 0 14px rgba(56,189,248,0.7);
+      border-radius: 4px; box-shadow: 0 0 14px rgba(56,189,248,0.7);
+    }
+
+    /* ===== БЛОКИ КНОПОК ПО КУТАХ (ПК ТА ПЛАНШЕТИ) ===== */
+    .home-corner-group {
+      position: absolute; top: 24px; z-index: 10;
+      display: flex; flex-direction: column; gap: 14px;
+      width: 380px; max-width: calc(50vw - 30px);
+    }
+    .home-corner-group.left-corner { left: 24px; }
+    .home-corner-group.right-corner { right: 24px; }
+
+    .home-nav-btn {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 28px;
+      background: rgba(15, 23, 42, 0.4); 
+      border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 12px;
+      color: #f1f5f9; font-size: 16px; font-weight: 700; text-decoration: none;
+      cursor: pointer; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      transition: background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+      text-align: left; box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    }
+    .home-nav-btn:hover {
+      background: rgba(37, 99, 235, 0.7); border-color: #38bdf8;
+      color: #fff; transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(56, 189, 248, 0.5);
+    }
+
+    .home-dropdown-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .home-submenu {
+      display: none; flex-direction: column; gap: 6px; padding-left: 12px;
+      margin-top: 4px; border-left: 3px solid rgba(56, 189, 248, 0.6);
+    }
+    .home-submenu.show { display: flex; }
+    .home-submenu a {
+      padding: 12px 18px; 
+      background: rgba(15, 23, 42, 0.55); 
+      border: 1px solid rgba(51, 65, 85, 0.6); border-radius: 8px;
+      color: #cbd5e1; text-decoration: none; font-size: 14px; font-weight: 600;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      transition: background 0.15s, color 0.15s, border-color 0.15s; text-align: left;
+    }
+    .home-submenu a:hover { background: rgba(30, 41, 59, 0.9); color: #38bdf8; border-color: #38bdf8; }
+
+    /* ===== МЕНЮ ТРЬОХ ТОЧОК ТА ВИСУВНІ ПАНЕЛІ (ЛИШЕ ДЛЯ ТЕЛЕФОНІВ НА ГОЛОВНІЙ СТОРІНЦІ) ===== */
+    .mobile-dots-btn {
+      display: none;
+      position: absolute; top: 16px; z-index: 100;
+      width: 42px; height: 42px; background: rgba(15, 23, 42, 0.6);
+      border: 1.5px solid rgba(56, 189, 248, 0.5); border-radius: 10px;
+      color: #38bdf8; font-size: 22px; font-weight: bold;
+      align-items: center; justify-content: center; cursor: pointer;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: background 0.2s;
+    }
+    .mobile-dots-btn.left-dots { left: 16px; }
+    .mobile-dots-btn.right-dots { right: 16px; }
+
+    .drawer-overlay {
+      display: none; position: fixed; inset: 0; z-index: 2000;
+      background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px);
+    }
+    .drawer-overlay.show { display: block; }
+
+    .mobile-drawer {
+      position: fixed; top: 0; bottom: 0; z-index: 2001;
+      width: 280px; max-width: 80vw;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+      padding: 20px 16px; display: flex; flex-direction: column; gap: 10px;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+    }
+    .mobile-drawer.left-drawer { left: 0; transform: translateX(-100%); border-right: 1.5px solid rgba(56, 189, 248, 0.4); }
+    .mobile-drawer.right-drawer { right: 0; transform: translateX(100%); border-left: 1.5px solid rgba(56, 189, 248, 0.4); }
+    .mobile-drawer.open { transform: translateX(0); }
+
+    .drawer-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 12px; margin-bottom: 6px; border-bottom: 1px solid #334155;
+    }
+    .drawer-title { font-size: 13px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px; }
+    .drawer-close { font-size: 22px; color: #ef4444; cursor: pointer; padding: 0 4px; }
+
+    @media (max-width: 768px) {
+      .home-corner-group { display: none !important; }
+      #page-home .mobile-dots-btn { display: flex !important; }
     }
 
     /* ===== СТОРІНКА "ОПЕРАТИВНА ІНФОРМАЦІЯ" ===== */
@@ -117,7 +198,7 @@
 
     .dashboard-grid { display: flex; flex-direction: column; gap: 10px; }
     @media (min-width: 700px)  { .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; } }
-    @media (min-width: 1100px) { .dashboard-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 1100px) { .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); } }
     .grid-column { display: flex; flex-direction: column; gap: 10px; }
 
     .info-block { background: #1e293b; border-radius: 8px; border: 1px solid #334155; overflow: hidden; }
@@ -247,38 +328,6 @@
     .refresh-btn.spinning .refresh-icon { animation: refresh-spin .8s linear infinite; }
     @keyframes refresh-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    /* ===== ПАНЕЛЬ РОЗДІЛІВ ===== */
-    .icon-toolbar {
-      position: fixed; top: 14px; right: 14px; z-index: 1200;
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-      background: #1e293b; border: 1px solid #334155; border-radius: 10px;
-      padding: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-    }
-    .icon-btn-wrap { position: relative; display: flex; }
-    .icon-btn {
-      width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
-      background: #0f172a; border: 1px solid #334155; border-radius: 8px;
-      font-size: 18px; line-height: 1; cursor: pointer; color: #e2e8f0;
-      text-decoration: none; transition: background .2s, border-color .2s, transform .15s;
-    }
-    .icon-btn:hover { background: #2563eb; border-color: #2563eb; transform: translateY(-1px); }
-    .icon-btn.active-icon { background: #2563eb; border-color: #2563eb; }
-
-    .icon-dropdown {
-      display: none; position: absolute; top: 0; right: calc(100% + 8px);
-      min-width: 220px; background: #1e293b; border: 1px solid #334155;
-      border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      padding: 6px; z-index: 1250; flex-direction: column; gap: 2px;
-    }
-    .icon-dropdown.show { display: flex; }
-    .icon-dropdown a {
-      display: flex; align-items: center; gap: 8px;
-      padding: 9px 10px; color: #cbd5e1; text-decoration: none;
-      font-size: 13px; font-weight: 500; border-radius: 6px;
-      transition: background .15s, color .15s; white-space: nowrap;
-    }
-    .icon-dropdown a:hover { background: #0f172a; color: #f1f5f9; }
-
     .pdf-btn {
       background:#dc2626; color:#fff; border:none; border-radius:6px;
       padding:6px 12px; cursor:pointer; font-size:12px; font-weight:600;
@@ -288,7 +337,7 @@
     /* ===== ПОПАП-ВІКНА ІНЦИДЕНТІВ ===== */
     .incident-overlay {
       display: none;
-      position: fixed; inset: 0; z-index: 1300;
+      position: fixed; inset: 0; z-index: 1400;
       background: rgba(0,0,0,.55);
     }
     .incident-overlay.show { display: block; }
@@ -305,7 +354,7 @@
       border: 1px solid #2563eb;
       border-radius: 12px;
       box-shadow: 0 0 40px rgba(37,99,235,.6);
-      z-index: 1301;
+      z-index: 1401;
     }
     .incident-window.show { display: flex; }
 
@@ -369,7 +418,7 @@
 
     /* ===== ПЕРЕГЛЯД ДОКУМЕНТІВ (PDF) ===== */
     .doc-viewer-overlay{
-      display:none; position:fixed; inset:0; z-index:1400;
+      display:none; position:fixed; inset:0; z-index:1500;
       background:rgba(0,0,0,.6);
     }
     .doc-viewer-overlay.show{ display:block; }
@@ -380,7 +429,7 @@
       width:min(1000px, 95vw); height:min(85vh, 900px);
       background:#1e293b; border:1px solid #2563eb;
       border-radius:12px; box-shadow:0 0 40px rgba(37,99,235,.6);
-      z-index:1401;
+      z-index:1501;
     }
     .doc-viewer-window.show{ display:flex; }
 
@@ -534,19 +583,114 @@
     html:fullscreen, html:-webkit-full-screen, html:-ms-fullscreen, html:-moz-full-screen { background:#0f172a; }
     #page-operational.is-fullscreen-target { background:#0f172a; overflow-y:auto; padding-top:10px; width:100%; min-height:100%; }
     .deployment-window.is-fullscreen-target { background:#1e293b; width:100%; height:100%; }
+
+    /* ===== ІНДИКАТОР ЧАСУ СЕСІЇ ===== */
+    .session-badge{
+      font-size:10px; color:#64748b; font-family:monospace;
+      margin-left:6px; white-space:nowrap;
+    }
   </style>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeAllDrawers()"></div>
+
+<!-- ВИСУВНА ПАНЕЛЬ ДЛЯ ТЕЛЕФОНУ (ЛІВА) -->
+<div class="mobile-drawer left-drawer" id="leftMobileDrawer">
+  <div class="drawer-header">
+    <span class="drawer-title">Оперативний блок</span>
+    <span class="drawer-close" onclick="closeAllDrawers()">✖</span>
+  </div>
+  <button class="home-nav-btn" onclick="showSection('operational'); closeAllDrawers();"><span>🚒 Оперативна інформація</span> <span>→</span></button>
+  <button class="home-nav-btn" onclick="openDeploymentMap(); closeAllDrawers();"><span>🚚 Залучення підрозділів</span> <span>→</span></button>
+  <a class="home-nav-btn" href="https://docs.google.com/spreadsheets/d/1U-RaiGh310Y9wzQBOy9fKwtJg5zvz2S4euk2-gdjoh0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer"><span>⛑️ Техніка по області</span> <span>↗</span></a>
+  <a class="home-nav-btn" href="https://docs.google.com/spreadsheets/d/1OR9eARR4VgsJXBhjDRVsAoe7oi2InDxR1glKTsWF4a0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer"><span>📄 Стройова записка</span> <span>↗</span></a>
+</div>
+
+<!-- ВИСУВНА ПАНЕЛЬ ДЛЯ ТЕЛЕФОНУ (ПРАВА) -->
+<div class="mobile-drawer right-drawer" id="rightMobileDrawer">
+  <div class="drawer-header">
+    <span class="drawer-title">Ресурси та аналітика</span>
+    <span class="drawer-close" onclick="closeAllDrawers()">✖</span>
+  </div>
+  <button class="home-nav-btn" onclick="openElevatorsMap(); closeAllDrawers();"><span>🌾 Елеватори</span> <span>→</span></button>
+
+  <div class="home-dropdown-wrap">
+    <button class="home-nav-btn" onclick="toggleHomeSubmenu('analyticsSubMob')"><span>📊 Аналітичні дані</span> <span>▾</span></button>
+    <div class="home-submenu" id="analyticsSubMob">
+      <a href="https://firms.modaps.eosdis.nasa.gov/map/#d:24hrs;@33.698,51.886,11.328z" target="_blank" rel="noopener noreferrer">🔥 Термоточки</a>
+      <a href="https://openinframap.org/#8.99/50.85/34.7987/A,B,I,L,O,P,S,T,W" target="_blank" rel="noopener noreferrer">⚡ Об'єкти енергетики</a>
+      <a href="https://maps.visicom.ua/c/34.33022,51.14261,14/r/uc0jgxh9g6,uc0jgzb8nh/m/uc0jgxht73?lang=uk" target="_blank" rel="noopener noreferrer">🗺️ Візіком</a>
+      <a href="https://www.ventusky.com/uk#p=50.76;34.14;7" target="_blank" rel="noopener noreferrer">💧 Погода</a>
+    </div>
+  </div>
+
+  <div class="home-dropdown-wrap">
+    <button class="home-nav-btn" onclick="toggleHomeSubmenu('normativnySubMob')"><span>📁 Нормативні документи</span> <span>▾</span></button>
+    <div class="home-submenu" id="normativnySubMob">
+      <a href="https://zakon.rada.gov.ua/laws/show/z0534-22#Text" target="_blank" rel="noopener noreferrer">116</a>
+      <a href="https://zakon.rada.gov.ua/laws/show/z1839-23#Text" target="_blank" rel="noopener noreferrer">780</a>
+      <a href="https://zakon.rada.gov.ua/laws/show/z0802-18#Text" target="_blank" rel="noopener noreferrer">340-гасіння пожеж</a>
+      <a href="https://ips.ligazakon.net/document/re32253?an=1" target="_blank" rel="noopener noreferrer">340-НС</a>
+      <a href="https://zakon.rada.gov.ua/laws/show/z0835-17#Text" target="_blank" rel="noopener noreferrer">511</a>
+      <a href="https://zakon.rada.gov.ua/laws/show/z0780-15#Text" target="_blank" rel="noopener noreferrer">696</a>
+      <a href="https://zakon.rada.gov.ua/rada/show/v0432388-13#Text" target="_blank" rel="noopener noreferrer">432</a>
+      <a href="#" onclick="openDocViewer('1661.pdf', '📄 1661 — Про затвердження Правил безпеки праці в органах та підрозділах ДСНС'); closeAllDrawers(); return false;">1661</a>
+    </div>
+  </div>
+</div>
 
 <!-- ===== ГОЛОВНА СТОРІНКА ===== -->
 <section id="page-home">
   <div class="home-bg"></div>
   <div class="home-overlay"></div>
+  
+  <!-- КНОПКИ З 3 ТОЧКАМИ ДЛЯ ТЕЛЕФОНУ (РОЗМІЩЕНІ ВСЕРЕДИНІ PAGE-HOME) -->
+  <button class="mobile-dots-btn left-dots" onclick="openDrawer('leftMobileDrawer')">⋮</button>
+  <button class="mobile-dots-btn right-dots" onclick="openDrawer('rightMobileDrawer')">⋮</button>
+
+  <!-- Лівий верхній кут (ДЛЯ ПК) -->
+  <div class="home-corner-group left-corner">
+    <button class="home-nav-btn" onclick="showSection('operational')"><span>🚒 Оперативна інформація</span> <span>→</span></button>
+    <button class="home-nav-btn" onclick="openDeploymentMap()"><span>🚚 Залучення підрозділів</span> <span>→</span></button>
+    <a class="home-nav-btn" href="https://docs.google.com/spreadsheets/d/1U-RaiGh310Y9wzQBOy9fKwtJg5zvz2S4euk2-gdjoh0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer"><span>⛑️ Техніка по області</span> <span>↗</span></a>
+    <a class="home-nav-btn" href="https://docs.google.com/spreadsheets/d/1OR9eARR4VgsJXBhjDRVsAoe7oi2InDxR1glKTsWF4a0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer"><span>📄 Стройова записка</span> <span>↗</span></a>
+    <a class="home-nav-btn" href="https://docs.google.com/spreadsheets/d/1cTH4URwAm61Aoqv4jo_uEOtbf_AeBdkaJ-ikTdR0gfQ/edit?gid=1720867108#gid=1720867108" target="_blank" rel="noopener noreferrer"><span>📌 Мотопомпи</span> <span>↗</span></a>
+   <a class="home-nav-btn" href="https://docs.google.com/spreadsheets/d/1E7e3-_L26MtiaFo1xJisjiL-fjwVmC_UDsQDCWE_ggA/edit?gid=1618519701#gid=1618519701" target="_blank" rel="noopener noreferrer"><span>🧰 Механізований інструмент ДПРЗ ТА ДПРЧ</span> <span>↗</span></a>
+  </div>
+
+  <!-- Правий верхній кут (ДЛЯ ПК) -->
+  <div class="home-corner-group right-corner">
+    <button class="home-nav-btn" onclick="openElevatorsMap()"><span>🌾 Елеватори</span> <span>→</span></button>
+
+    <div class="home-dropdown-wrap">
+      <button class="home-nav-btn" onclick="toggleHomeSubmenu('analyticsSub')"><span>📊 Аналітичні дані</span> <span>▾</span></button>
+      <div class="home-submenu" id="analyticsSub">
+        <a href="https://firms.modaps.eosdis.nasa.gov/map/#d:24hrs;@33.698,51.886,11.328z" target="_blank" rel="noopener noreferrer">🔥 Термоточки</a>
+        <a href="https://openinframap.org/#8.99/50.85/34.7987/A,B,I,L,O,P,S,T,W" target="_blank" rel="noopener noreferrer">⚡ Об'єкти енергетики</a>
+        <a href="https://maps.visicom.ua/c/34.33022,51.14261,14/r/uc0jgxh9g6,uc0jgzb8nh/m/uc0jgxht73?lang=uk" target="_blank" rel="noopener noreferrer">🗺️ Візіком</a>
+        <a href="https://www.ventusky.com/uk#p=50.76;34.14;7" target="_blank" rel="noopener noreferrer">💧 Погода</a>
+      </div>
+    </div>
+
+    <div class="home-dropdown-wrap">
+      <button class="home-nav-btn" onclick="toggleHomeSubmenu('normativnySub')"><span>📁 Нормативні документи</span> <span>▾</span></button>
+      <div class="home-submenu" id="normativnySub">
+        <a href="https://zakon.rada.gov.ua/laws/show/z0534-22#Text" target="_blank" rel="noopener noreferrer">116</a>
+        <a href="https://zakon.rada.gov.ua/laws/show/z1839-23#Text" target="_blank" rel="noopener noreferrer">780</a>
+        <a href="https://zakon.rada.gov.ua/laws/show/z0802-18#Text" target="_blank" rel="noopener noreferrer">340-гасіння пожеж</a>
+        <a href="https://ips.ligazakon.net/document/re32253?an=1" target="_blank" rel="noopener noreferrer">340-НС</a>
+        <a href="https://zakon.rada.gov.ua/laws/show/z0835-17#Text" target="_blank" rel="noopener noreferrer">511</a>
+        <a href="https://zakon.rada.gov.ua/laws/show/z0780-15#Text" target="_blank" rel="noopener noreferrer">696</a>
+        <a href="https://zakon.rada.gov.ua/rada/show/v0432388-13#Text" target="_blank" rel="noopener noreferrer">432</a>
+        <a href="#" onclick="openDocViewer('1661.pdf', '📄 1661 — Про затвердження Правил безпеки праці в органах та підрозділах ДСНС'); return false;">1661</a>
+      </div>
+    </div>
+  </div>
+
   <div class="home-content">
-    <div class="home-eyebrow">ДСНС УКРАЇНИ</div>
+    <div class="home-eyebrow">ГУ ДСНС УКРАЇНИ У СУМСЬКІЙ ОБЛАСТІ</div>
     <h1>РЕГІОНАЛЬНИЙ ЦЕНТР УПРАВЛІННЯ<br>В НАДЗВИЧАЙНИХ СИТУАЦІЯХ</h1>
     <div class="home-divider"></div>
   </div>
@@ -937,51 +1081,40 @@
   </div>
 </div>
 
-<!-- ===== ПАНЕЛЬ РОЗДІЛІВ (ІКОНКИ) ===== -->
-<div class="icon-toolbar" id="iconToolbar">
-  <a href="#" class="icon-btn" title="Оперативна інформація" onclick="showSection('operational'); return false;">🚒</a>
-  <a href="#" class="icon-btn" title="Залучення підрозділів" onclick="openDeploymentMap(); return false;">🚚</a>
-  <a href="#" class="icon-btn" title="Елеватори" onclick="openElevatorsMap(); return false;">🌾</a>
-
-  <div class="icon-btn-wrap">
-    <button type="button" class="icon-btn" title="Аналітичні дані" onclick="toggleAnalyticsMenu(event)">📊</button>
-    <div class="icon-dropdown" id="analyticsSubmenu">
-      <a href="https://firms.modaps.eosdis.nasa.gov/map/#d:24hrs;@33.698,51.886,11.328z" target="_blank" rel="noopener noreferrer">🔥 Термоточки</a>
-      <a href="https://openinframap.org/#8.99/50.85/34.7987/A,B,I,L,O,P,S,T,W" target="_blank" rel="noopener noreferrer">⚡ Об'єкти енергетики</a>
-      <a href="https://maps.visicom.ua/c/34.33022,51.14261,14/r/uc0jgxh9g6,uc0jgzb8nh/m/uc0jgxht73?lang=uk" target="_blank" rel="noopener noreferrer">🗺️ Візіком</a>
-      <a href="https://www.ventusky.com/uk#p=50.76;34.14;7" target="_blank" rel="noopener noreferrer">💧 Погода</a>
-    </div>
-  </div>
-
-  <div class="icon-btn-wrap">
-    <button type="button" class="icon-btn" title="Нормативні документи" onclick="toggleNormativnyMenu(event)">📁</button>
-    <div class="icon-dropdown" id="normativnySubmenu">
-      <a href="https://zakon.rada.gov.ua/laws/show/z0534-22#Text" target="_blank" rel="noopener noreferrer">116</a>
-      <a href="https://zakon.rada.gov.ua/laws/show/z1839-23#Text" target="_blank" rel="noopener noreferrer">780</a>
-      <a href="https://zakon.rada.gov.ua/laws/show/z0802-18#Text" target="_blank" rel="noopener noreferrer">340-гасіння пожеж</a>
-      <a href="https://ips.ligazakon.net/document/re32253?an=1" target="_blank" rel="noopener noreferrer">340-НС</a>
-      <a href="https://zakon.rada.gov.ua/laws/show/z0835-17#Text" target="_blank" rel="noopener noreferrer">511</a>
-      <a href="https://zakon.rada.gov.ua/laws/show/z0780-15#Text" target="_blank" rel="noopener noreferrer">696</a>
-      <a href="https://zakon.rada.gov.ua/rada/show/v0432388-13#Text" target="_blank" rel="noopener noreferrer">432</a>
-      <a href="#" onclick="openDocViewer('1661.pdf', '📄 1661 — Про затвердження Правил безпеки праці в органах та підрозділах ДСНС'); closeAllDropdowns(); return false;">1661</a>
-    </div>
-  </div>
-
-  <a class="icon-btn" title="Техніка по області" href="https://docs.google.com/spreadsheets/d/1U-RaiGh310Y9wzQBOy9fKwtJg5zvz2S4euk2-gdjoh0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">⛑️</a>
-  <a class="icon-btn" title="Стройова записка" href="https://docs.google.com/spreadsheets/d/1OR9eARR4VgsJXBhjDRVsAoe7oi2InDxR1glKTsWF4a0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">📄</a>
-</div>
-
-<!-- ===== СНАПШОТНІ СКРИПТИ ТА НАВІГАЦІЯ ===== -->
+<!-- ===== СКРИПТИ НАВІГАЦІЇ ТА ОСНОВНОГО ФУНКЦІОНАЛУ ===== -->
 <script>
+  function openDrawer(id) {
+    closeAllDrawers();
+    document.getElementById(id).classList.add('open');
+    document.getElementById('drawerOverlay').classList.add('show');
+  }
+
+  function closeAllDrawers() {
+    document.querySelectorAll('.mobile-drawer').forEach(d => d.classList.remove('open'));
+    var overlay = document.getElementById('drawerOverlay');
+    if (overlay) overlay.classList.remove('show');
+  }
+
+  function toggleHomeSubmenu(id) {
+    const sub = document.getElementById(id);
+    if (sub) {
+      if (sub.classList.contains('show')) {
+        sub.classList.remove('show');
+      } else {
+        sub.classList.add('show');
+      }
+    }
+  }
+
   var mapInitialized = false;
 
   function showSection(name) {
+    closeAllDrawers();
     document.getElementById('page-home').style.display = 'none';
     document.getElementById('page-operational').classList.remove('active');
 
     if (name === 'operational') {
       document.getElementById('page-operational').classList.add('active');
-      document.getElementById('iconToolbar').style.display = 'none';
       if (!mapInitialized) {
         mapInitialized = true;
         initMap();
@@ -989,31 +1122,14 @@
       }
     } else {
       document.getElementById('page-home').style.display = 'flex';
-      document.getElementById('iconToolbar').style.display = 'flex';
     }
-    closeAllDropdowns();
   }
 
   function goHome() {
+    closeAllDrawers();
     document.getElementById('page-operational').classList.remove('active');
     document.getElementById('page-home').style.display = 'flex';
-    document.getElementById('iconToolbar').style.display = 'flex';
   }
-
-  function closeAllDropdowns() {
-    document.querySelectorAll('.icon-dropdown.show').forEach(function(d) {
-      d.classList.remove('show');
-    });
-    document.querySelectorAll('.icon-btn.active-icon').forEach(function(b) {
-      b.classList.remove('active-icon');
-    });
-  }
-
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('.icon-btn-wrap')) {
-      closeAllDropdowns();
-    }
-  });
 
   function manualRefresh(btn) {
     var textEl = btn.querySelector('.refresh-text');
@@ -1126,9 +1242,7 @@ function dsnsLoadLayer(layer, callback) {
   };
 
   script.src = MAP_API_URL + '?map=true&type=' + encodeURIComponent(layer.name) + '&callback=' + id;
-  script.onerror = function() {
-    finish();
-  };
+  script.onerror = function() { finish(); };
   document.head.appendChild(script);
 }
 
@@ -1362,35 +1476,7 @@ document.addEventListener('fullscreenchange', handleFullscreenChange);
 document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 document.addEventListener('msfullscreenchange', handleFullscreenChange);
 document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-</script>
 
-<script>
-function toggleAnalyticsMenu(e) {
-    if (e) e.stopPropagation();
-    const menu = document.getElementById('analyticsSubmenu');
-    const btn  = e ? e.currentTarget : null;
-    const wasOpen = menu.classList.contains('show');
-    closeAllDropdowns();
-    if (!wasOpen) {
-        menu.classList.add('show');
-        if (btn) btn.classList.add('active-icon');
-    }
-}
-
-function toggleNormativnyMenu(e) {
-    if (e) e.stopPropagation();
-    const menu = document.getElementById('normativnySubmenu');
-    const btn  = e ? e.currentTarget : null;
-    const wasOpen = menu.classList.contains('show');
-    closeAllDropdowns();
-    if (!wasOpen) {
-        menu.classList.add('show');
-        if (btn) btn.classList.add('active-icon');
-    }
-}
-</script>
-
-<script>
 async function saveOperationalPDF() {
   const element = document.querySelector('.dashboard-wrapper');
 
@@ -1474,7 +1560,6 @@ async function saveOperationalPDF() {
     setInterval(syncCounters, 5 * 60 * 1000);
   })();
 
-  // НОВИЙ ВСТАВЛЕНИЙ КЛЮЧ
   const INCIDENT_API = 'https://script.google.com/macros/s/AKfycbzJV_jG_xuq4Ve0_ugegu1HoTK5VJM1mXs5r-lRCJnbnRsCmjnTy6DkhQs6Kh7IA1axSA/exec';
 
   const INCIDENT_CONFIG = {
@@ -1687,7 +1772,6 @@ var DEPLOYMENT_DEFAULT_STYLE = { icon: '🚒', color: '#94a3b8' };
 function openDeploymentMap() {
   document.getElementById('deploymentWindow').classList.add('show');
   document.getElementById('deploymentOverlay').classList.add('show');
-  closeAllDropdowns();
 
   if (!deploymentMapInitialized) {
     deploymentMapInitialized = true;
@@ -1887,7 +1971,6 @@ function elevatorGrainSvg(color) {
 function openElevatorsMap() {
   document.getElementById('elevatorsWindow').classList.add('show');
   document.getElementById('elevatorsOverlay').classList.add('show');
-  closeAllDropdowns();
 
   if (!elevatorsMapInitialized) {
     elevatorsMapInitialized = true;
