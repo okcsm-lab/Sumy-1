@@ -591,8 +591,590 @@
     }
   </style>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- ===== СТИЛІ ЕКРАНУ ВХОДУ (2FA) ===== -->
+  <style>
+    body.pre-auth #page-home,
+    body.pre-auth #page-operational { display: none !important; }
+
+    #loginGate{
+      position:fixed; inset:0; z-index:5000;
+      background:#0f172a;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(37,99,235,0.12) 0%, transparent 45%),
+        radial-gradient(circle at 80% 80%, rgba(124,58,237,0.12) 0%, transparent 45%);
+      display:flex; align-items:center; justify-content:center; padding:20px;
+    }
+    #loginGate.hidden{ display:none; }
+
+    .login-card{
+      width:100%;max-width:420px;
+      background:#1e293b;
+      border:1px solid #334155;
+      border-radius:14px;
+      padding:32px 28px;
+      box-shadow:0 10px 50px rgba(0,0,0,.5);
+      position:relative;
+      overflow:hidden;
+    }
+    .login-card::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:3px;
+      background:linear-gradient(90deg,transparent,#38bdf8,#818cf8,transparent);
+    }
+    .login-eyebrow{
+      font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;
+      letter-spacing:3px;color:#38bdf8;text-transform:uppercase;text-align:center;
+      margin-bottom:8px;
+    }
+    .login-title{
+      font-family:'Orbitron',sans-serif;font-weight:900;font-size:20px;
+      text-align:center;line-height:1.35;margin-bottom:6px;
+      background:linear-gradient(135deg,#ffffff 0%,#93c5fd 45%,#38bdf8 75%,#818cf8 100%);
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+    }
+    .login-sub{
+      font-family:'Rajdhani',sans-serif;font-weight:600;font-size:13px;
+      text-align:center;color:#94a3b8;margin-bottom:26px;
+    }
+    .login-card .field{margin-bottom:16px;}
+    .login-card .field label{
+      display:block;font-size:11px;font-weight:600;color:#94a3b8;
+      text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;
+    }
+    .login-card .field input{
+      width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;
+      padding:11px 12px;color:#e2e8f0;font-size:14px;outline:none;
+      transition:border-color .15s;
+    }
+    .login-card .field input:focus{border-color:#2563eb;}
+    .login-card .field input.otp-input{
+      letter-spacing:8px;font-size:20px;text-align:center;font-family:monospace;
+    }
+    .login-card .btn-primary{
+      width:100%;padding:12px;border:none;border-radius:8px;
+      background:linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);
+      color:#fff;font-size:14px;font-weight:700;letter-spacing:.3px;
+      cursor:pointer;transition:transform .15s,box-shadow .15s;
+    }
+    .login-card .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(124,58,237,.5);}
+    .login-card .btn-primary:disabled{opacity:.5;cursor:default;transform:none;box-shadow:none;}
+    .login-card .btn-link{
+      display:block;width:100%;text-align:center;background:none;border:none;
+      color:#64748b;font-size:12px;margin-top:16px;cursor:pointer;text-decoration:underline;
+    }
+    .login-card .btn-link:hover{color:#94a3b8;}
+    .login-card .error-msg{
+      background:#7f1d1d;color:#fca5a5;border-radius:8px;padding:9px 12px;
+      font-size:12px;margin-bottom:16px;display:none;text-align:center;
+    }
+    .login-card .success-msg{
+      background:#14532d;color:#86efac;border-radius:8px;padding:9px 12px;
+      font-size:13px;margin-bottom:16px;text-align:center;
+    }
+    .login-card .login-step{display:none;}
+    .login-card .login-step.active{display:block;}
+    .login-card .setup-note{
+      font-size:12px;color:#cbd5e1;line-height:1.6;margin-bottom:16px;text-align:center;
+    }
+    .login-card .qr-wrap{
+      display:flex;justify-content:center;margin-bottom:14px;
+      background:#e2e8f0;border-radius:10px;padding:12px;
+    }
+    .login-card .manual-key{
+      background:#0f172a;border:1px solid #334155;border-radius:8px;
+      padding:10px 12px;font-family:monospace;font-size:13px;letter-spacing:1px;
+      color:#38bdf8;text-align:center;word-break:break-all;margin-bottom:18px;
+      cursor:pointer;
+    }
+    .login-card .manual-key-label{font-size:10px;color:#64748b;text-align:center;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+
+    @media (max-width:480px){
+      .login-card{ padding:24px 18px; border-radius:12px; }
+      .login-title{ font-size:18px; }
+      .login-card .field input.otp-input{ letter-spacing:5px; font-size:18px; }
+    }
+  </style>
 </head>
-<body>
+<body class="pre-auth">
+
+<!-- ===== ЕКРАН ВХОДУ (2FA) ===== -->
+<div id="loginGate">
+  <div class="login-card">
+    <div class="login-eyebrow">ДСНС УКРАЇНИ</div>
+    <div class="login-title">ГУ ДСНС Сумщина</div>
+    <div class="login-sub">Вхід до системи оперативного управління</div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <!-- КРОК 1: ЛОГІН + ПАРОЛЬ -->
+    <div class="login-step active" id="step-credentials">
+      <div class="field">
+        <label>Електронна пошта</label>
+        <input type="email" id="emailInput" autocomplete="username" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Пароль</label>
+        <input type="password" id="passwordInput" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <button class="btn-primary" id="btnLogin" onclick="handleCredentials()">Далі</button>
+    </div>
+
+    <!-- КРОК 2A: ПЕРШЕ НАЛАШТУВАННЯ GOOGLE AUTHENTICATOR -->
+    <div class="login-step" id="step-setup2fa">
+      <div class="setup-note">
+        Це перший вхід. Відскануйте QR-код у застосунку <b>Google Authenticator</b>
+        (або будь-якому іншому TOTP-застосунку), або введіть ключ вручну.
+      </div>
+      <div class="qr-wrap"><div id="qrcode"></div></div>
+      <div class="manual-key-label">Ключ для ручного введення (натисніть, щоб скопіювати)</div>
+      <div class="manual-key" id="manualKey" onclick="copyManualKey()">——</div>
+      <div class="field">
+        <label>Код підтвердження з застосунку</label>
+        <input type="text" id="setupCodeInput" class="otp-input" maxlength="6" inputmode="numeric" placeholder="000000">
+      </div>
+      <button class="btn-primary" id="btnSetupConfirm" onclick="handleSetupConfirm()">Підтвердити та увійти</button>
+      <button class="btn-link" onclick="goBackToCredentials()">← Назад</button>
+    </div>
+
+    <!-- КРОК 2B: ЗВИЧАЙНИЙ ВХІД — ЛИШЕ КОД -->
+    <div class="login-step" id="step-code2fa">
+      <div class="setup-note">Введіть 6-значний код з Google Authenticator</div>
+      <div class="field">
+        <input type="text" id="codeInput" class="otp-input" maxlength="6" inputmode="numeric" placeholder="000000">
+      </div>
+      <button class="btn-primary" id="btnCodeConfirm" onclick="handleCodeConfirm()">Увійти</button>
+      <button class="btn-link" onclick="goBackToCredentials()">← Назад</button>
+    </div>
+
+    <!-- КРОК 3: УСПІХ -->
+    <div class="login-step" id="step-success">
+      <div class="success-msg">✅ Вхід виконано успішно. Завантаження…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+var ALLOWED_USERS = {
+  'valera.rohalskiy@gmail.com': 'Valera19@',
+  'v.s.rohalskyi@dsns.gov.ua':  'Valera19@',
+  'chepizhniy.97@gmail.com':    'Bogdan1997',
+  'e.vorona@dsns.gov.ua':       'Frogjaba1107!!&',
+  'dsnskiev2017@gmail.com':       'qwerty12345@',
+  'stashok2519@gmail.com':       '2026_SlavaUKR_2026UA',
+  'vadim19ivantsov98@gmail.com':       'Kaban1998',
+  'okc.sm@dsns.gov.ua':         'Okcsm@'
+};
+var ISSUER_NAME = 'DSNS Sumy';
+
+var SS_TOKEN = 'dsns_auth_token';
+var SESSION_DURATION_MS = 4 * 60 * 60 * 1000;
+
+var sessionCheckTimer = null;
+var currentLoginEmail = null;
+var currentTwoFactorSecret = null;
+
+function gsRun(fnName) {
+  var args = Array.prototype.slice.call(arguments, 1);
+  return new Promise(function (resolve, reject) {
+    var runner = google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(reject);
+    runner[fnName].apply(runner, args);
+  });
+}
+
+function base32Decode(str){
+  var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  str = str.replace(/=+$/,'').toUpperCase().replace(/\s+/g,'');
+  var bits = '';
+  for (var i=0;i<str.length;i++){
+    var val = alphabet.indexOf(str[i]);
+    if (val === -1) continue;
+    bits += val.toString(2).padStart(5,'0');
+  }
+  var bytes = [];
+  for (var j=0;j+8<=bits.length;j+=8){ bytes.push(parseInt(bits.substr(j,8),2)); }
+  return new Uint8Array(bytes);
+}
+
+async function hmacSha1(keyBytes, msgBytes){
+  var key = await crypto.subtle.importKey('raw', keyBytes, {name:'HMAC', hash:'SHA-1'}, false, ['sign']);
+  var sig = await crypto.subtle.sign('HMAC', key, msgBytes);
+  return new Uint8Array(sig);
+}
+async function totpAt(secretBase32, stepOffset){
+  var keyBytes = base32Decode(secretBase32);
+  var counter = Math.floor(Date.now()/1000/30) + (stepOffset||0);
+  var buf = new ArrayBuffer(8);
+  var view = new DataView(buf);
+  view.setUint32(0, Math.floor(counter/4294967296));
+  view.setUint32(4, counter % 4294967296);
+  var hmac = await hmacSha1(keyBytes, new Uint8Array(buf));
+  var offset = hmac[hmac.length-1] & 0xf;
+  var code = ((hmac[offset] & 0x7f) << 24) | ((hmac[offset+1] & 0xff) << 16) |
+             ((hmac[offset+2] & 0xff) << 8) | (hmac[offset+3] & 0xff);
+  return (code % 1000000).toString().padStart(6,'0');
+}
+async function verifyTotp(secretBase32, inputCode){
+  inputCode = (inputCode||'').trim();
+  if (!/^\d{6}$/.test(inputCode)) return false;
+  for (var offset=-1; offset<=1; offset++){
+    var code = await totpAt(secretBase32, offset);
+    if (code === inputCode) return true;
+  }
+  return false;
+}
+
+function showLoginStep(id){
+  document.querySelectorAll('.login-step').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  hideLoginError();
+}
+function showLoginError(msg){
+  var el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideLoginError(){
+  document.getElementById('errorMsg').style.display = 'none';
+}
+function setBusy(btn, busy, textBusy, textIdle){
+  btn.disabled = busy;
+  btn.textContent = busy ? textBusy : textIdle;
+}
+
+async function handleCredentials(){
+  hideLoginError();
+  var email = document.getElementById('emailInput').value.trim().toLowerCase();
+  var password = document.getElementById('passwordInput').value;
+
+  var validPassword = ALLOWED_USERS[email];
+  if (!validPassword || password !== validPassword){
+    showLoginError('Невірна електронна пошта або пароль.');
+    return;
+  }
+  currentLoginEmail = email;
+
+  var btn = document.getElementById('btnLogin');
+  setBusy(btn, true, 'Перевірка…', 'Далі');
+  var state;
+  try {
+    state = await gsRun('getTwoFactorState', email);
+  } catch (err) {
+    setBusy(btn, false, 'Перевірка…', 'Далі');
+    showLoginError('Помилка зв’язку із сервером. Спробуйте ще раз.');
+    return;
+  }
+  setBusy(btn, false, 'Перевірка…', 'Далі');
+  currentTwoFactorSecret = state.secret;
+
+  if (!state.enabled){
+    startTwoFactorSetup();
+  } else {
+    document.getElementById('codeInput').value = '';
+    showLoginStep('step-code2fa');
+    document.getElementById('codeInput').focus();
+  }
+}
+
+function startTwoFactorSetup(){
+  var secret = currentTwoFactorSecret;
+
+  var otpauth = 'otpauth://totp/' + encodeURIComponent(ISSUER_NAME + ':' + currentLoginEmail) +
+                '?secret=' + secret +
+                '&issuer=' + encodeURIComponent(ISSUER_NAME) +
+                '&algorithm=SHA1&digits=6&period=30';
+
+  document.getElementById('qrcode').innerHTML = '';
+  new QRCode(document.getElementById('qrcode'), {
+    text: otpauth, width: 200, height: 200,
+    colorDark: '#0f172a', colorLight: '#e2e8f0'
+  });
+
+  document.getElementById('manualKey').textContent = secret.match(/.{1,4}/g).join(' ');
+  document.getElementById('setupCodeInput').value = '';
+  showLoginStep('step-setup2fa');
+}
+
+function copyManualKey(){
+  var secret = currentTwoFactorSecret || '';
+  if (!secret) return;
+  navigator.clipboard && navigator.clipboard.writeText(secret);
+  var el = document.getElementById('manualKey');
+  var original = el.textContent;
+  el.textContent = 'Скопійовано ✓';
+  setTimeout(function(){ el.textContent = original; }, 1200);
+}
+
+async function handleSetupConfirm(){
+  hideLoginError();
+  var btn = document.getElementById('btnSetupConfirm');
+  var code = document.getElementById('setupCodeInput').value;
+  var secret = currentTwoFactorSecret;
+
+  setBusy(btn, true, 'Перевірка…', 'Підтвердити та увійти');
+  var ok = await verifyTotp(secret, code);
+  if (!ok){
+    setBusy(btn, false, 'Перевірка…', 'Підтвердити та увійти');
+    showLoginError('Невірний код. Спробуйте ще раз.');
+    return;
+  }
+
+  try {
+    await gsRun('confirmTwoFactorEnabled', currentLoginEmail);
+  } catch (err) {
+    setBusy(btn, false, 'Перевірка…', 'Підтвердити та увійти');
+    showLoginError('Помилка збереження на сервері. Спробуйте ще раз.');
+    return;
+  }
+  setBusy(btn, false, 'Перевірка…', 'Підтвердити та увійти');
+  await completeLogin();
+}
+
+async function handleCodeConfirm(){
+  hideLoginError();
+  var btn = document.getElementById('btnCodeConfirm');
+  var code = document.getElementById('codeInput').value;
+  var secret = currentTwoFactorSecret;
+
+  setBusy(btn, true, 'Перевірка…', 'Увійти');
+  var ok = await verifyTotp(secret, code);
+  setBusy(btn, false, 'Перевірка…', 'Увійти');
+
+  if (!ok){
+    showLoginError('Невірний код. Спробуйте ще раз.');
+    return;
+  }
+  await completeLogin();
+}
+
+async function resetTwoFactor(){
+  if (!confirm('Скинути налаштування Google Authenticator для цього акаунта? Доведеться налаштувати застосунок заново.')) return;
+  try {
+    await gsRun('resetTwoFactorServer', currentLoginEmail);
+  } catch (err) {
+    showLoginError('Не вдалося скинути 2FA. Спробуйте ще раз.');
+    return;
+  }
+  currentTwoFactorSecret = null;
+  goBackToCredentials();
+}
+function goBackToCredentials(){
+  showLoginStep('step-credentials');
+}
+
+var inMemorySession = null;
+
+function storageTest(store){
+  try {
+    var k = '__dsns_storage_test__';
+    store.setItem(k, '1');
+    var ok = store.getItem(k) === '1';
+    store.removeItem(k);
+    return ok;
+  } catch(e) { return false; }
+}
+
+function setCookieSession(raw){
+  try {
+    var maxAgeSec = Math.floor(SESSION_DURATION_MS / 1000);
+    document.cookie = SS_TOKEN + '=' + encodeURIComponent(raw) + '; max-age=' + maxAgeSec + '; path=/; SameSite=Lax';
+  } catch(e) {}
+}
+
+function getCookieSession(){
+  try {
+    var match = document.cookie.match(new RegExp('(?:^|; )' + SS_TOKEN + '=([^;]*)'));
+    if (!match) return null;
+    return JSON.parse(decodeURIComponent(match[1]));
+  } catch(e) { return null; }
+}
+
+function clearCookieSession(){
+  try { document.cookie = SS_TOKEN + '=; max-age=0; path=/; SameSite=Lax'; } catch(e) {}
+}
+
+function getUrlSessionToken(){
+  return new Promise(function(resolve){
+    try {
+      google.script.url.getLocation(function(loc){
+        resolve(loc && loc.parameter && loc.parameter.session ? loc.parameter.session : null);
+      });
+    } catch(e){ resolve(null); }
+  });
+}
+
+function setUrlSessionToken(token){
+  try {
+    google.script.history.replace(null, { session: token }, '');
+  } catch(e) {}
+}
+
+function clearUrlSessionToken(){
+  try {
+    google.script.history.replace(null, {}, '');
+  } catch(e) {}
+}
+
+async function saveSession(){
+  var result = await gsRun('createSession', currentLoginEmail);
+  var sessionData = { token: result.token, loginTime: result.loginTime };
+
+  inMemorySession = sessionData;
+
+  var raw = JSON.stringify(sessionData);
+  try { if (storageTest(localStorage)) localStorage.setItem(SS_TOKEN, raw); } catch(e) {}
+  try { if (storageTest(sessionStorage)) sessionStorage.setItem(SS_TOKEN, raw); } catch(e) {}
+  setCookieSession(raw);
+
+  setUrlSessionToken(result.token);
+}
+
+function readSession(){
+  if (inMemorySession && inMemorySession.loginTime) return inMemorySession;
+
+  try {
+    var raw = localStorage.getItem(SS_TOKEN);
+    if (raw) {
+      var data = JSON.parse(raw);
+      if (data && data.loginTime) { inMemorySession = data; return data; }
+    }
+  } catch(e) {}
+
+  try {
+    var raw2 = sessionStorage.getItem(SS_TOKEN);
+    if (raw2) {
+      var data2 = JSON.parse(raw2);
+      if (data2 && data2.loginTime) { inMemorySession = data2; return data2; }
+    }
+  } catch(e) {}
+
+  var cookieData = getCookieSession();
+  if (cookieData && cookieData.loginTime) { inMemorySession = cookieData; return cookieData; }
+
+  return null;
+}
+
+function clearSession(){
+  var tokenToDestroy = inMemorySession ? inMemorySession.token : null;
+
+  inMemorySession = null;
+  try { localStorage.removeItem(SS_TOKEN); } catch(e) {}
+  try { sessionStorage.removeItem(SS_TOKEN); } catch(e) {}
+  clearCookieSession();
+  clearUrlSessionToken();
+
+  if (tokenToDestroy) {
+    gsRun('destroySession', tokenToDestroy).catch(function(){});
+  }
+
+  if (sessionCheckTimer) { clearInterval(sessionCheckTimer); sessionCheckTimer = null; }
+}
+
+function isSessionValid(){
+  var data = readSession();
+  if (!data) return false;
+  return (Date.now() - data.loginTime) < SESSION_DURATION_MS;
+}
+
+function forceLogout(){
+  clearSession();
+  document.body.classList.add('pre-auth');
+  document.getElementById('loginGate').classList.remove('hidden');
+  showLoginStep('step-credentials');
+  document.getElementById('emailInput').value = '';
+  document.getElementById('passwordInput').value = '';
+  currentLoginEmail = null;
+  currentTwoFactorSecret = null;
+}
+
+function startSessionWatcher(){
+  if (sessionCheckTimer) clearInterval(sessionCheckTimer);
+  sessionCheckTimer = setInterval(function(){
+    if (!isSessionValid()){
+      forceLogout();
+    } else {
+      updateSessionBadge();
+    }
+  }, 30 * 1000);
+  updateSessionBadge();
+}
+
+function updateSessionBadge(){
+  var badge = document.getElementById('sessionBadge');
+  if (!badge) return;
+  var data = readSession();
+  if (!data){ badge.textContent = ''; return; }
+  var remainingMs = SESSION_DURATION_MS - (Date.now() - data.loginTime);
+  if (remainingMs <= 0){ badge.textContent = ''; return; }
+  var totalMin = Math.floor(remainingMs / 60000);
+  var h = Math.floor(totalMin / 60);
+  var m = totalMin % 60;
+  badge.textContent = '⏳ сесія: ' + h + 'г ' + (m < 10 ? '0' : '') + m + 'хв';
+}
+
+async function completeLogin(){
+  await saveSession();
+  showLoginStep('step-success');
+  setTimeout(function(){
+    document.getElementById('loginGate').classList.add('hidden');
+    document.body.classList.remove('pre-auth');
+    startSessionWatcher();
+    goHome();
+  }, 700);
+}
+
+(async function checkExistingSession(){
+  var urlToken = await getUrlSessionToken();
+
+  if (urlToken) {
+    try {
+      var result = await gsRun('validateSession', urlToken);
+      if (result && result.valid) {
+        var sessionData = { token: urlToken, loginTime: result.loginTime };
+        inMemorySession = sessionData;
+
+        var raw = JSON.stringify(sessionData);
+        try { if (storageTest(localStorage)) localStorage.setItem(SS_TOKEN, raw); } catch(e) {}
+        try { if (storageTest(sessionStorage)) sessionStorage.setItem(SS_TOKEN, raw); } catch(e) {}
+        setCookieSession(raw);
+
+        if (isSessionValid()){
+          document.getElementById('loginGate').classList.add('hidden');
+          document.body.classList.remove('pre-auth');
+          window.addEventListener('DOMContentLoaded', function(){
+            startSessionWatcher();
+            goHome();
+          });
+          return;
+        }
+      }
+    } catch(e) {}
+  }
+
+  if (isSessionValid()){
+    document.getElementById('loginGate').classList.add('hidden');
+    document.body.classList.remove('pre-auth');
+    window.addEventListener('DOMContentLoaded', function(){
+      startSessionWatcher();
+      goHome();
+    });
+  } else {
+    clearSession();
+  }
+})();
+
+document.getElementById('passwordInput').addEventListener('keydown', function(e){ if (e.key==='Enter') handleCredentials(); });
+document.getElementById('emailInput').addEventListener('keydown', function(e){ if (e.key==='Enter') handleCredentials(); });
+document.getElementById('setupCodeInput').addEventListener('keydown', function(e){ if (e.key==='Enter') handleSetupConfirm(); });
+document.getElementById('codeInput').addEventListener('keydown', function(e){ if (e.key==='Enter') handleCodeConfirm(); });
+['setupCodeInput','codeInput'].forEach(function(id){
+  document.getElementById(id).addEventListener('input', function(e){
+    e.target.value = e.target.value.replace(/\D/g,'').slice(0,6);
+  });
+});
+</script>
 
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeAllDrawers()"></div>
 
@@ -606,8 +1188,9 @@
   <button class="home-nav-btn" onclick="openDeploymentMap(); closeAllDrawers();"><span>🚚 Залучення підрозділів</span> <span>→</span></button>
   <a class="home-nav-btn" href="https://docs.google.com/spreadsheets/d/1U-RaiGh310Y9wzQBOy9fKwtJg5zvz2S4euk2-gdjoh0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer"><span>⛑️ Техніка по області</span> <span>↗</span></a>
   <a class="home-nav-btn" href="https://docs.google.com/spreadsheets/d/1OR9eARR4VgsJXBhjDRVsAoe7oi2InDxR1glKTsWF4a0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer"><span>📄 Стройова записка</span> <span>↗</span></a>
+  <a class="home-nav-btn" href="https://docs.google.com/spreadsheets/d/1E7e3-_L26MtiaFo1xJisjiL-fjwVmC_UDsQDCWE_ggA/edit?gid=1618519701#gid=1618519701" target="_blank" rel="noopener noreferrer"><span>🧰 Механізований інструмент ДПРЗ ТА ДПРЧ</span> <span>↗</span></a>
+  <a class="home-nav-btn" href="https://docs.google.com/spreadsheets/d/1cTH4URwAm61Aoqv4jo_uEOtbf_AeBdkaJ-ikTdR0gfQ/edit?gid=1720867108#gid=1720867108" target="_blank" rel="noopener noreferrer"><span>📌 Мотопомпи</span> <span>↗</span></a>
 </div>
-
 <!-- ВИСУВНА ПАНЕЛЬ ДЛЯ ТЕЛЕФОНУ (ПРАВА) -->
 <div class="mobile-drawer right-drawer" id="rightMobileDrawer">
   <div class="drawer-header">
@@ -657,7 +1240,6 @@
     <a class="home-nav-btn" href="https://docs.google.com/spreadsheets/d/1U-RaiGh310Y9wzQBOy9fKwtJg5zvz2S4euk2-gdjoh0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer"><span>⛑️ Техніка по області</span> <span>↗</span></a>
     <a class="home-nav-btn" href="https://docs.google.com/spreadsheets/d/1OR9eARR4VgsJXBhjDRVsAoe7oi2InDxR1glKTsWF4a0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer"><span>📄 Стройова записка</span> <span>↗</span></a>
     <a class="home-nav-btn" href="https://docs.google.com/spreadsheets/d/1cTH4URwAm61Aoqv4jo_uEOtbf_AeBdkaJ-ikTdR0gfQ/edit?gid=1720867108#gid=1720867108" target="_blank" rel="noopener noreferrer"><span>📌 Мотопомпи</span> <span>↗</span></a>
-   <a class="home-nav-btn" href="https://docs.google.com/spreadsheets/d/1E7e3-_L26MtiaFo1xJisjiL-fjwVmC_UDsQDCWE_ggA/edit?gid=1618519701#gid=1618519701" target="_blank" rel="noopener noreferrer"><span>🧰 Механізований інструмент ДПРЗ ТА ДПРЧ</span> <span>↗</span></a>
   </div>
 
   <!-- Правий верхній кут (ДЛЯ ПК) -->
@@ -721,6 +1303,7 @@
       </div>
       <div class="header-meta" style="display:flex;align-items:center;gap:10px;">
         <span class="date-badge" id="dashboardClock">Завантаження...</span>
+        <span class="session-badge" id="sessionBadge"></span>
         <button class="pdf-btn" onclick="saveOperationalPDF()">📄 PDF</button>
       </div>
     </header>
